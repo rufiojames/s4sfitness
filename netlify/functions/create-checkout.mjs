@@ -35,8 +35,12 @@ const json = (status, body) =>
 export default async (req) => {
   if (req.method !== "POST") return json(405, { error: "Use POST." });
 
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = (process.env.STRIPE_SECRET_KEY || "").trim();
   if (!key) return json(500, { error: "Checkout isn't set up yet. Please try again shortly." });
+  if (!/^(sk|rk)_(test|live)_/.test(key)) {
+    console.error("STRIPE_SECRET_KEY doesn't look like a Stripe secret key (starts with " + key.slice(0, 8) + ")");
+    return json(500, { error: "Checkout isn't set up correctly yet. [Setup: the Stripe key in Netlify should start sk_test_ or sk_live_, not " + key.slice(0, 3) + "…]" });
+  }
 
   let body;
   try { body = await req.json(); } catch { return json(400, { error: "Bad request." }); }
@@ -121,8 +125,12 @@ export default async (req) => {
     return json(502, { error: "Couldn't reach the payment provider. Please try again." });
   }
   if (!res.ok || !data.url) {
-    console.error("Stripe error:", data && data.error);
-    return json(502, { error: "Checkout couldn't start. Please try again, or email us." });
+    const err = (data && data.error) || {};
+    console.error("Stripe error:", res.status, JSON.stringify(err));
+    // While testing (sk_test_ key) show Stripe's reason on screen to make setup easier.
+    // With a live key, customers only ever see the friendly message.
+    const detail = key.startsWith("sk_test_") ? ` [Stripe test mode: ${err.message || "HTTP " + res.status}]` : "";
+    return json(502, { error: "Checkout couldn't start. Please try again, or email us." + detail });
   }
   return json(200, { url: data.url });
 };
