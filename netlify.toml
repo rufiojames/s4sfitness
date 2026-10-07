@@ -1,0 +1,13 @@
+# S4S Fitness — Netlify settings
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Never cache the stock file, so sold-out sizes show straight away
+[[headers]]
+  for = "/stock.json"
+  [headers.values]
+    Cache-Control = "no-cache"

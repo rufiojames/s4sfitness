@@ -1,0 +1,12 @@
+{
+  "_help": "Set a size to false when it sells out, then redeploy. The site greys it out and checkout refuses it.",
+  "price_pence": 3499,
+  "was_pence": 5999,
+  "sizes": {
+    "S": true,
+    "M": true,
+    "L": true,
+    "XL": true,
+    "XXL": true
+  }
+}
