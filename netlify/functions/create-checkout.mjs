@@ -41,12 +41,21 @@ export default async (req) => {
   let body;
   try { body = await req.json(); } catch { return json(400, { error: "Bad request." }); }
 
-  const site = (process.env.URL || new URL(req.url).origin).replace(/\/$/, "");
-  let stock;
+  // Use the address the customer is actually on (works on the .netlify.app address
+  // and on s4sfitness.com), so links back from Stripe always land on a working page.
+  const site = new URL(req.url).origin;
+
+  // Sold-out sizes. If the stock file can't be read, don't block the sale:
+  // fall back to treating every size as available and log it.
+  let stock = { price_pence: 3499, sizes: { S: true, M: true, L: true, XL: true, XXL: true } };
   try {
     const r = await fetch(`${site}/stock.json`, { headers: { "Cache-Control": "no-cache" } });
-    stock = await r.json();
-  } catch { return json(503, { error: "Checkout is busy. Please try again in a moment." }); }
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const s = await r.json();
+    if (s && s.sizes && Number.isInteger(s.price_pence)) stock = s;
+  } catch (e) {
+    console.error("Couldn't read stock.json from", site, "-", e && e.message);
+  }
 
   const size = String(body.size || "");
   const qty = Math.floor(Number(body.qty));
