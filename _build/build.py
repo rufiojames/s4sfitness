@@ -76,7 +76,7 @@ def head(title, desc, path, og_img="img/og.jpg", extra=""):
 def header(path):
     links = "".join(
         f'<a href="{h}"{" aria-current=" + chr(34) + "page" + chr(34) if h == path else ""}>{t}</a>' for h, t in NAV)
-    return f"""<div class="announce">The final run · Once a size is gone, it's gone · UK delivery £5.99, free over £75</div>
+    return f"""<div class="announce">The final run · Once a size is gone, it's gone · UK delivery £5.99, free when you buy 2</div>
 <header class="site-header">
   <div class="wrap">
     <a class="brand" href="./" aria-label="S4S Fitness home"><img src="img/logo.png" alt="S4S Fitness" width="800" height="396"></a>
@@ -331,7 +331,7 @@ pdp = f"""
       <div class="opt-label"><span>Colour</span></div>
       <div class="colour"><span class="swatch" aria-hidden="true"><i></i></span>Grey marl / charcoal / sky blue</div>
 
-      <div class="opt-label"><span>Size</span><a href="#size-guide">Size guide</a></div>
+      <div class="opt-label"><span>Size <small class="model-size">· Model wears M</small></span><a href="#size-guide">Size guide</a></div>
       <div class="sizes" role="group" aria-label="Choose a size" id="size-picker">{size_btns}</div>
 
       <div class="opt-label"><span>Delivering to</span></div>
@@ -340,7 +340,7 @@ pdp = f"""
         <button type="button" id="region-europe" data-region="europe" aria-pressed="false">Europe</button>
         <button type="button" id="region-world" data-region="world" aria-pressed="false">Rest of world</button>
       </div>
-      <p class="ship-note" id="ship-note">UK tracked delivery £5.99 (free over £75)</p>
+      <p class="ship-note" id="ship-note">UK tracked delivery £5.99 (free when you buy 2)</p>
 
       <div class="buy-row">
         <div class="qty" aria-label="Quantity">
@@ -354,7 +354,7 @@ pdp = f"""
 
       <div class="assure">
         <div><span><b>Dispatched in 24 hrs</b><br>Tracked UK delivery</span></div>
-        <div><span><b>Free UK delivery</b><br>On orders over £75</span></div>
+        <div><span><b>Free UK delivery</b><br>When you buy 2 or more</span></div>
         <div><span><b>30-day returns</b><br>Unworn, tags on</span></div>
         <div><span><b>Secure checkout</b><br>Card, Apple Pay, Google Pay</span></div>
       </div>
@@ -371,11 +371,11 @@ pdp = f"""
           <li>Grey marl body in our exclusive fabric blend</li>
         </ul></div></details>
         <details><summary>Fit</summary><div class="acc-body">
-          <p>An aesthetic, tapered fit: close through the chest, waist and arms without restricting movement. Unisex sizing from S to XXL.</p>
+          <p>An aesthetic, tapered fit: close through the chest, waist and arms without restricting movement. Unisex sizing from S to XXL. The model in our photos wears a medium.</p>
           <p>Between sizes? Size up for a relaxed fit, or take your usual size for the full aesthetic cut. See the <a href="#size-guide">size guide</a>.</p>
         </div></details>
         <details><summary>Delivery &amp; returns</summary><div class="acc-body">
-          <p>Tracked UK delivery is £5.99 (1–3 days) and free on orders over £75. Tracked delivery to Europe is £14.99, and to the rest of the world £25.99, plus a little for each extra hoodie. Orders are dispatched within 24 hours.</p>
+          <p>Tracked UK delivery is £5.99 (1–3 days) and free when you buy 2 or more (orders over £65). Tracked delivery to Europe is £14.99, and to the rest of the world £25.99, plus a little for each extra hoodie. Orders are dispatched within 24 hours.</p>
           <p>Returns are accepted within 30 days for unworn items with tags. <a href="delivery-returns.html">Full delivery and returns details</a>.</p>
         </div></details>
         <details><summary>Buying for a team?</summary><div class="acc-body">
@@ -645,8 +645,8 @@ delivery = f"""
     <div class="tablewrap" style="margin-bottom:1.6em"><table class="plain-table">
       <thead><tr><th>Service</th><th>Order</th><th>Cost</th></tr></thead>
       <tbody>
-        <tr><td>UK tracked (1–3 days)</td><td>Up to £75</td><td>£5.99</td></tr>
-        <tr><td>UK tracked (1–3 days)</td><td>Over £75</td><td>Free</td></tr>
+        <tr><td>UK tracked (1–3 days)</td><td>Up to £65 (1 hoodie)</td><td>£5.99</td></tr>
+        <tr><td>UK tracked (1–3 days)</td><td>Over £65 (2 or more)</td><td>Free</td></tr>
         <tr><td>Europe tracked (3–7 days)</td><td>1 hoodie</td><td>£14.99</td></tr>
         <tr><td>Europe tracked (3–7 days)</td><td>Each extra hoodie</td><td>+£2.00</td></tr>
         <tr><td>Rest of world tracked (5–10 days)</td><td>1 hoodie</td><td>£25.99</td></tr>

@@ -13,7 +13,7 @@ const PRODUCT_NAME = "S4S Perform-Fit Full Zip Hoodie";
 // maxQty keeps international parcels under Royal Mail's 2kg small-parcel limit.
 const ZONES = {
   uk: {
-    label: "UK tracked delivery", first: 599, extra: 0, freeOver: 7500,
+    label: "UK tracked delivery", first: 599, extra: 0, freeOver: 6500, // 2+ hoodies (£69.98) ship free
     days: [1, 3], maxQty: 20, countries: ["GB"]
   },
   europe: {

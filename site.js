@@ -72,7 +72,7 @@
   // Display copy of the delivery rates. The checkout function is the source of truth;
   // keep these in step with ZONES in netlify/functions/create-checkout.mjs.
   const ZONES = {
-    uk:     { name: "UK tracked delivery", first: 5.99, extra: 0, freeOver: 75, maxQty: 20 },
+    uk:     { name: "UK tracked delivery", first: 5.99, extra: 0, freeOver: 65, maxQty: 20 },
     europe: { name: "Europe tracked delivery", first: 14.99, extra: 2, freeOver: null, maxQty: 4 },
     world:  { name: "International tracked delivery", first: 25.99, extra: 4.99, freeOver: null, maxQty: 4 }
   };
@@ -111,7 +111,7 @@
       if (z.freeOver !== null && sub > z.freeOver) return { label: "Free " + z.name, cost: 0 };
       const cost = z.first + z.extra * (qty - 1);
       let label = z.name + " " + money(cost);
-      if (z.freeOver !== null) label += " (free over £" + z.freeOver + ")";
+      if (z.freeOver !== null) label += " · add a second hoodie for free delivery";
       else label += ". Import charges may apply on delivery. Max " + z.maxQty + " per order.";
       return { label, cost };
     }
