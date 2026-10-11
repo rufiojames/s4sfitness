@@ -75,7 +75,7 @@ def head(title, desc, path, og_img="img/og.jpg", extra=""):
 def header(path):
     links = "".join(
         f'<a href="{h}"{" aria-current=" + chr(34) + "page" + chr(34) if h == path else ""}>{t}</a>' for h, t in NAV)
-    return f"""<div class="announce">UK delivery £5.99 · Free UK delivery over £75 · Ships within 24 hours</div>
+    return f"""<div class="announce">The final run · Once a size is gone, it's gone · UK delivery £5.99, free over £75</div>
 <header class="site-header">
   <div class="wrap">
     <a class="brand" href="./" aria-label="S4S Fitness home"><img src="img/logo.png" alt="S4S Fitness" width="800" height="396"></a>
@@ -209,12 +209,12 @@ SIZES = [("S", "48"), ("M", "51"), ("L", "54"), ("XL", "57"), ("XXL", "60")]
 home = f"""
 <section class="hero"><div class="wrap">
   <div class="hero-copy">
-    <p class="eyebrow">S4S Fitness · Training wear</p>
+    <p class="eyebrow">The original S4S · Final run</p>
     <h1>Aesthetically <span class="blue">fitted.</span><br>Designed to <span class="blue">perform.</span></h1>
-    <p class="lede">The Perform-Fit Full Zip Hoodie. A tapered training layer in our own fabric blend, with a contrast hood, zipped pockets and the S4S mark on the chest.</p>
+    <p class="lede">The hoodie you can actually train in. Bespoke designed in the UK: tapered, full-zip, zipped pockets, made to move. This is the final run, and we won't be making it again.</p>
     <div class="btns"><a class="btn btn-primary" href="perform-fit-hoodie.html">Shop the hoodie</a><a class="btn btn-ghost" href="lookbook.html">See the lookbook</a></div>
     <div class="hero-stats">
-      <div><b>£34.99</b><span>Was £59.99</span></div>
+      <div><b>£34.99</b><span>Final run</span></div>
       <div><b>S–XXL</b><span>Unisex sizing</span></div>
       <div><b>24 hrs</b><span>Dispatch</span></div>
     </div>
@@ -226,7 +226,7 @@ home = f"""
 </div></section>
 
 <div class="ticker" aria-hidden="true"><div class="ticker-track">
-  {"".join("<span>Perform-Fit</span><span>Full zip</span><span>Aesthetic fit</span><span>Built for training</span><span>S4S Fitness</span>" for _ in range(4))}
+  {"".join("<span>Perform-Fit</span><span>Full zip</span><span>Aesthetic fit</span><span>Gym</span><span>Padel</span><span>Runs</span><span>Final run</span><span>S4S Fitness</span>" for _ in range(4))}
 </div></div>
 
 <section class="section"><div class="wrap feature">
@@ -234,7 +234,7 @@ home = f"""
   <div>
     <p class="eyebrow">The signature piece</p>
     <h2>Perform-Fit <span class="blue">Full Zip</span> Hoodie</h2>
-    <div class="price"><strong>£34.99</strong><s>£59.99</s><em>SAVE 42%</em></div>
+    <div class="price"><strong>£34.99</strong><em>FINAL RUN</em></div>
     <ul class="ticks">
       <li>Tapered, close cut that shows the work without restricting movement</li>
       <li>Grey marl body with a contrast charcoal hood and sky-blue lining</li>
@@ -311,7 +311,7 @@ pdp = f"""
   <div class="pdp">
     <div id="gallery">
       <div class="gallery-main">
-        <span class="badge">SAVE 42%</span>
+        <span class="badge">FINAL RUN</span>
         <img id="gallery-img" src="img/{gallery_order[0]}.jpg" alt="{PHOTOS[gallery_order[0]]}" fetchpriority="high">
         <button class="gnav prev" type="button" aria-label="Previous photo">←</button>
         <button class="gnav next" type="button" aria-label="Next photo">→</button>
@@ -322,8 +322,10 @@ pdp = f"""
     <div class="buybox" id="buybox">
       <p class="eyebrow">S4S Fitness · Training hoodie</p>
       <h1>Perform-Fit <span class="blue">Full Zip</span> Hoodie</h1>
-      <div class="price"><strong>£34.99</strong><s>£59.99</s><em>SAVE 42%</em></div>
-      <p class="lede">Aesthetically fitted, designed to perform. Our exclusive fabric blend keeps the cut close while moving freely through every lift, sprint and stretch.</p>
+      <div class="price"><strong>£34.99</strong><em>FINAL RUN</em></div>
+      <p class="lede">The hoodie you can actually train in. Bespoke designed in the UK, cut close in our exclusive fabric blend, and free to move through every lift, sprint and rally.</p>
+      <p class="made-for"><b>Made for</b> gym warm-ups · padel · runs · everyday</p>
+      <p class="final-note"><b>Final run.</b> This is the last batch of the original Perform-Fit. We won't be remaking it, so when a size sells out, it's gone.</p>
 
       <div class="opt-label"><span>Colour</span></div>
       <div class="colour"><span class="swatch" aria-hidden="true"><i></i></span>Grey marl / charcoal / sky blue</div>
@@ -414,6 +416,7 @@ pdp = f"""
     <details><summary>How does it fit compared to a normal hoodie?</summary><div class="acc-body"><p>It's closer. The Perform-Fit is tapered through the body and arms like training kit, not cut loose like a casual hoodie. If you want a relaxed fit, go up a size.</p></div></details>
     <details><summary>How do I pay?</summary><div class="acc-body"><p>Checkout is handled securely by Stripe. You can pay by debit or credit card, Apple Pay or Google Pay. We never see or store your card details.</p></div></details>
     <details><summary>Who am I buying from?</summary><div class="acc-body"><p>S4S Fitness is a trading name of {SELLER["name"]}. That name may appear on your card statement and receipt. Full details are in our <a href="terms.html">terms of sale</a>.</p></div></details>
+    <details><summary>Will you restock?</summary><div class="acc-body"><p>No. This is the final run of the original Perform-Fit, bespoke designed in the UK. When a size sells out, it won't be coming back. Join the drop list to hear about what we do next.</p></div></details>
     <details><summary>Do you ship outside the UK?</summary><div class="acc-body"><p>Yes, with tracking. Europe is £14.99 for one hoodie plus £2 for each extra. The rest of the world is £25.99 plus £4.99 for each extra. International orders are limited to 4 hoodies; for more, use our <a href="team-orders.html">team orders</a> form. Import VAT or customs charges may be due on delivery.</p></div></details>
     <details><summary>Can I order in bulk?</summary><div class="acc-body"><p>Yes. Use the <a href="team-orders.html">team orders</a> form with your sizes and quantities.</p></div></details>
   </div>
@@ -436,15 +439,15 @@ shop = f"""
 <section class="page-hero"><div class="wrap">
   <p class="eyebrow">Shop</p>
   <h1>The <span class="blue">collection</span></h1>
-  <p class="lede">One piece, done properly. The Perform-Fit is where S4S Fitness started, and it's back in stock while it lasts.</p>
+  <p class="lede">One piece, done properly. The Perform-Fit is where S4S Fitness started. This is the final run, and when it's gone, it's gone.</p>
 </div></section>
 
 <section class="section"><div class="wrap">
   <div class="shop-grid">
     <a class="card" href="perform-fit-hoodie.html">
-      <div class="frame"><span class="tag">SAVE 42%</span>{img("graffiti-hands-on-hips", sm=True)}</div>
+      <div class="frame"><span class="tag">FINAL RUN</span>{img("graffiti-hands-on-hips", sm=True)}</div>
       <h3>Perform-Fit Full Zip Hoodie</h3>
-      <div class="meta"><b>£34.99</b><s>£59.99</s></div>
+      <div class="meta"><b>£34.99</b></div>
       <p class="sub">Grey marl · S to XXL</p>
     </a>
     <a class="card" href="team-orders.html">
@@ -532,7 +535,7 @@ story = f"""
   <div class="prose">
     <p class="eyebrow">The Perform-Fit</p>
     <h2 style="margin-top:4px">One piece, <span class="blue">done right</span></h2>
-    <p>The Perform-Fit Full Zip Hoodie was our first garment, released in 2015, and it is still the one people ask for.</p>
+    <p>The Perform-Fit Full Zip Hoodie was our first garment, bespoke designed in the UK and released in 2015. It's still the one people ask for.</p>
     <p>We developed our own fabric blend for it and cut it close: tapered through the body and arms so it looks sharp, with enough give that you can actually train in it. Then we added the details we wanted ourselves: a full zip, zipped pockets, a contrast hood and the S4S mark on the chest.</p>
   </div>
   <div class="frame">{img("sky-squat")}</div>
@@ -557,7 +560,7 @@ story = f"""
       <li><b>2015 · The Perform-Fit</b><p>Our first garment launches: the Perform-Fit Full Zip Hoodie. The first customers start posting theirs on Instagram that December.</p></li>
       <li><b>2016 · The team grows</b><p>S4S ambassadors like @josh_peers wear it on shoots, and a NOCCO-branded edition of the hoodie hits the gym floor.</p></li>
       <li><b>2018 · Fight ready</b><p>The Heavy Hitters Gym boxing squad gets kitted out in the Perform-Fit.</p></li>
-      <li><b>Today · s4sfitness.com</b><p>S4S Fitness gets a home of its own, starting with the hoodie that started it all.</p></li>
+      <li><b>Today · The final run</b><p>S4S Fitness gets a home of its own at s4sfitness.com, with the last batch of the hoodie that started it all. When it's gone, it's gone.</p></li>
     </ol>
   </div>
   <div class="frame">{img("side-blue-wall")}</div>
