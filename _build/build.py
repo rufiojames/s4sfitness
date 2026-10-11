@@ -53,6 +53,7 @@ def head(title, desc, path, og_img="img/og.jpg", extra=""):
 <title>{full}</title>
 <meta name="description" content="{desc}">
 <meta name="theme-color" content="#0a0c10">
+<meta name="facebook-domain-verification" content="cg7cx0bplt1y2ic3iakw90ra6t4a0j">
 <link rel="canonical" href="{url}">
 <meta property="og:site_name" content="S4S Fitness">
 <meta property="og:title" content="{full}">
