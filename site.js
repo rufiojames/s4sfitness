@@ -8,6 +8,7 @@
      The Pixel only loads after the visitor taps "Accept". Choice is remembered
      in this browser; "Cookie settings" in the footer reopens the banner. */
   const PIXEL_ID = "28189866387382186";
+  const GA_ID = "G-05LTRX5VJL";        // Google Analytics 4 measurement ID (G-XXXXXXX)
   const CONSENT_KEY = "s4s_consent";
   const store = {
     get(k, area = localStorage) { try { return area.getItem(k); } catch (e) { return null; } },
@@ -25,10 +26,34 @@
     (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
     fbq("init", PIXEL_ID);
     fbq("track", "PageView");
+    loadGA();
     pageEvents();
   }
+  /* Google Analytics 4: also only after "Accept" */
+  function loadGA() {
+    if (!GA_ID || window.gtag) return;
+    const t = document.createElement("script"); t.async = true;
+    t.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_ID;
+    document.head.appendChild(t);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { dataLayer.push(arguments); };
+    gtag("js", new Date());
+    gtag("config", GA_ID);
+  }
+  const GA_ITEM = q => [{ item_id: "S4S-PF-HOODIE", item_name: "Perform-Fit Full Zip Hoodie", price: 34.99, quantity: q || 1 }];
+  function gaEvent(name, data, opts) {
+    if (!window.gtag) return;
+    const d = data || {};
+    if (name === "ViewContent") gtag("event", "view_item", { currency: "GBP", value: 34.99, items: GA_ITEM(1) });
+    if (name === "InitiateCheckout") gtag("event", "begin_checkout", { currency: "GBP", value: d.value, items: GA_ITEM(d.num_items) });
+    if (name === "Purchase") gtag("event", "purchase", { currency: "GBP", value: d.value, transaction_id: (opts && opts.eventID) || undefined, items: GA_ITEM(d.num_items) });
+  }
   // fire an event only if the visitor has consented
-  const track = (name, data, opts) => { if (pixelOn && window.fbq) fbq("track", name, data || {}, opts || {}); };
+  const track = (name, data, opts) => {
+    if (!pixelOn) return;
+    if (window.fbq) fbq("track", name, data || {}, opts || {});
+    gaEvent(name, data, opts);
+  };
 
   function pageEvents() {
     if ($("#buybox")) track("ViewContent", { content_ids: ["S4S-PF-HOODIE"], content_name: "Perform-Fit Full Zip Hoodie", content_type: "product", value: 34.99, currency: "GBP" });
@@ -48,7 +73,7 @@
   function consentBanner() {
     const box = document.createElement("div");
     box.className = "consent"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Cookie choice");
-    box.innerHTML = '<p><b>Cookies.</b> We use a Meta (Facebook/Instagram) cookie to see which of our ads bring people here. It only switches on if you accept. <a href="privacy.html#cookies">More info</a></p>' +
+    box.innerHTML = '<p><b>Cookies.</b> We use Google Analytics and Meta (Facebook/Instagram) cookies to see how people find and use the site. It only switches on if you accept. <a href="privacy.html#cookies">More info</a></p>' +
       '<div class="consent-btns"><button type="button" class="btn btn-ghost" data-c="no">No thanks</button><button type="button" class="btn btn-primary" data-c="yes">Accept</button></div>';
     box.addEventListener("click", e => {
       const c = e.target.closest("[data-c]"); if (!c) return;
