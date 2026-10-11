@@ -4,6 +4,67 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
+  /* ---- Cookie consent + Meta Pixel ----------------------------------------
+     The Pixel only loads after the visitor taps "Accept". Choice is remembered
+     in this browser; "Cookie settings" in the footer reopens the banner. */
+  const PIXEL_ID = "28189866387382186";
+  const CONSENT_KEY = "s4s_consent";
+  const store = {
+    get(k, area = localStorage) { try { return area.getItem(k); } catch (e) { return null; } },
+    set(k, v, area = localStorage) { try { area.setItem(k, v); } catch (e) {} },
+    del(k, area = localStorage) { try { area.removeItem(k); } catch (e) {} }
+  };
+  let pixelOn = false;
+  function loadPixel() {
+    if (pixelOn) return; pixelOn = true;
+    /* Meta's standard base code */
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+    (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq("init", PIXEL_ID);
+    fbq("track", "PageView");
+    pageEvents();
+  }
+  // fire an event only if the visitor has consented
+  const track = (name, data, opts) => { if (pixelOn && window.fbq) fbq("track", name, data || {}, opts || {}); };
+
+  function pageEvents() {
+    if ($("#buybox")) track("ViewContent", { content_ids: ["S4S-PF-HOODIE"], content_name: "Perform-Fit Full Zip Hoodie", content_type: "product", value: 34.99, currency: "GBP" });
+    if (/order-confirmed/.test(location.pathname)) {
+      const sid = new URLSearchParams(location.search).get("session_id") || "";
+      let order = null; try { order = JSON.parse(store.get("s4s_pending", sessionStorage) || "null"); } catch (e) {}
+      const done = store.get("s4s_tracked_" + sid);
+      if (order && sid && !done) {
+        track("Purchase", { value: order.value, currency: "GBP", content_ids: ["S4S-PF-HOODIE"], content_type: "product", num_items: order.qty },
+              { eventID: sid });
+        store.set("s4s_tracked_" + sid, "1");
+      }
+      store.del("s4s_pending", sessionStorage);
+    }
+  }
+
+  function consentBanner() {
+    const box = document.createElement("div");
+    box.className = "consent"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Cookie choice");
+    box.innerHTML = '<p><b>Cookies.</b> We use a Meta (Facebook/Instagram) cookie to see which of our ads bring people here. It only switches on if you accept. <a href="privacy.html#cookies">More info</a></p>' +
+      '<div class="consent-btns"><button type="button" class="btn btn-ghost" data-c="no">No thanks</button><button type="button" class="btn btn-primary" data-c="yes">Accept</button></div>';
+    box.addEventListener("click", e => {
+      const c = e.target.closest("[data-c]"); if (!c) return;
+      store.set(CONSENT_KEY, c.dataset.c === "yes" ? "granted" : "denied");
+      box.remove();
+      if (c.dataset.c === "yes") loadPixel();
+    });
+    document.body.appendChild(box);
+  }
+  const consent = store.get(CONSENT_KEY);
+  if (consent === "granted") loadPixel();
+  else if (consent !== "denied") consentBanner();
+  $$("[data-cookie-settings]").forEach(a => a.addEventListener("click", e => {
+    e.preventDefault(); store.del(CONSENT_KEY); if (!$(".consent")) consentBanner();
+  }));
+
   /* ---- Product + checkout -------------------------------------------------
      Checkout runs on Stripe. The price and delivery are set on the server
      (netlify/functions/create-checkout.mjs) and sizes are switched on/off in stock.json. */
@@ -88,7 +149,12 @@
         const r = await fetch(CHECKOUT, { method: "POST", headers: { "Content-Type": "application/json" },
                                           body: JSON.stringify({ size, qty, region }) });
         const d = await r.json().catch(() => ({}));
-        if (r.ok && d.url) { location.href = d.url; return; }
+        if (r.ok && d.url) {
+          const value = Math.round((PRODUCT.price * qty + shipping().cost) * 100) / 100;
+          store.set("s4s_pending", JSON.stringify({ value, qty, size }), sessionStorage);
+          track("InitiateCheckout", { value, currency: "GBP", content_ids: ["S4S-PF-HOODIE"], content_type: "product", num_items: qty });
+          location.href = d.url; return;
+        }
         if (r.status === 409) { soldOut.add(size); size = null; }
         busy = false; render(d.error || "Checkout couldn't start. Please try again.");
       } catch (e) {

@@ -113,7 +113,7 @@ FOOTER = f"""</main>
   </div>
   <div class="wrap foot-bottom">
     <span>© <span data-year>2026</span> S4S Fitness. {seller_line()}</span>
-    <span><a href="terms.html">Terms of sale</a> · <a href="privacy.html">Privacy</a></span>
+    <span><a href="terms.html">Terms of sale</a> · <a href="privacy.html">Privacy</a> · <a href="privacy.html#cookies" data-cookie-settings>Cookie settings</a></span>
   </div>
 </footer>
 <script src="site.js" defer></script>
@@ -724,7 +724,7 @@ privacy = f"""
   <p class="lede">What we collect on this site, why, and what you can ask us to do with it.</p>
 </div></section>
 <div class="wrap info">
-  <nav class="toc" aria-label="On this page"><a href="#who">Who we are</a><a href="#collect">What we collect</a><a href="#use">How we use it</a><a href="#rights">Your rights</a></nav>
+  <nav class="toc" aria-label="On this page"><a href="#who">Who we are</a><a href="#collect">What we collect</a><a href="#cookies">Cookies</a><a href="#use">How we use it</a><a href="#rights">Your rights</a></nav>
   <div class="prose">
     <h2 id="who" style="margin-top:0">Who we are</h2>
     <p>{seller_line()} We are responsible for the personal information collected on this site. For any privacy question, email <a href="mailto:{EMAIL}">{EMAIL}</a>.</p>
@@ -733,14 +733,17 @@ privacy = f"""
       <li><strong>Forms on this site:</strong> the details you type into the contact, team order and drop list forms, such as your name, email address, phone number and message.</li>
       <li><strong>Orders:</strong> when you buy, we collect your name, email, phone number and delivery address so we can send your order. Checkout is handled by Stripe, which processes your payment. Card details go straight to Stripe and are never seen or stored by us.</li>
     </ul>
-    <p>This site does not use advertising or tracking cookies.</p>
+    <h3 id="cookies">Cookies</h3>
+    <p>We only use one optional cookie: the <strong>Meta Pixel</strong> from Meta (Facebook and Instagram). It tells us which of our ads bring people to the site and lead to orders, and lets us show our ads to people likely to be interested. It records things like the pages you view, when you start checkout, and when you complete an order (with the order value). Meta may combine this with information it already holds about you.</p>
+    <p>It <strong>only switches on if you tap "Accept"</strong> on the cookie banner. If you choose "No thanks", it never loads. You can change your mind at any time using <a href="#cookies" data-cookie-settings>Cookie settings</a>, which also appears at the bottom of every page. Your choice is remembered in your browser.</p>
+    <p>Checkout is handled by Stripe, which uses its own essential cookies to process payments securely and prevent fraud. You can read <a href="https://stripe.com/privacy" target="_blank" rel="noopener">Stripe's privacy policy</a> and <a href="https://www.facebook.com/privacy/policy" target="_blank" rel="noopener">Meta's privacy policy</a>.</p>
     <h2 id="use">How we use it</h2>
     <ul>
       <li>To reply to your message or team order request.</li>
       <li>To process, deliver and support your order.</li>
       <li>If you join the drop list, to email you about new products and restocks. Every email has an unsubscribe link, or just ask us to remove you.</li>
     </ul>
-    <p>We don't sell your information. We share it only with the services that run the shop: Stripe for payments, Netlify for website hosting and form submissions, and the courier delivering your parcel.</p>
+    <p>We don't sell your information. We share it only with the services that run the shop: Stripe for payments, Netlify for website hosting and form submissions, Meta for ad measurement if you accept cookies, and the courier delivering your parcel.</p>
     <h2 id="rights">Your rights</h2>
     <p>Under UK GDPR you can ask to see the personal data we hold about you, ask us to correct or delete it, or object to how we use it. Email us and we'll respond within one month. You can also complain to the Information Commissioner's Office at ico.org.uk.</p>
   </div>
