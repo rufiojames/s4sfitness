@@ -11,3 +11,10 @@
   for = "/stock.json"
   [headers.values]
     Cache-Control = "no-cache"
+
+# Ad creative files: allow Meta Ads Manager to fetch them
+[[headers]]
+  for = "/ads/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    X-Robots-Tag = "noindex"
