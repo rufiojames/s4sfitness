@@ -1,5 +1,5 @@
 {
-  "_help": "Set a size to false when it sells out, then redeploy. The site greys it out and checkout refuses it.",
+  "_help": "Prices are in pence. Set in_stock (or a hoodie size) to false when it sells out, then push. The site greys it out and checkout refuses it. Set low to true to show 'Only a few left'.",
   "price_pence": 3499,
   "sizes": {
     "S": true,
@@ -7,5 +7,12 @@
     "L": true,
     "XL": true,
     "XXL": true
+  },
+  "products": {
+    "hoodie": { "name": "S4S Perform-Fit Full Zip Hoodie", "price_pence": 3499, "units": 1 },
+    "grips":  { "name": "TAFFER Pro Lifting Grips", "price_pence": 4999, "in_stock": true, "low": false, "units": 0.5 },
+    "wraps":  { "name": "TAFFER Wrist Wraps", "price_pence": 2199, "addon_pence": 1999, "in_stock": true, "low": false, "units": 0.5 },
+    "chalk":  { "name": "Beast Liquid Chalk", "price_pence": 999, "in_stock": true, "low": true, "units": 0.5, "uk_only": true },
+    "kit":    { "name": "The Training Kit", "price_pence": 9499, "includes": ["hoodie", "grips", "wraps"], "units": 2 }
   }
 }

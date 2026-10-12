@@ -25,6 +25,8 @@ IG_ICON = ('<svg class="ig-icon" viewBox="0 0 24 24" aria-hidden="true" width="2
            '<circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/>'
            '<circle cx="17.3" cy="6.7" r="1.3" fill="currentColor"/></svg>')
 
+BAG_ICON = ('<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>'
+            '<path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="2"/></svg>')
 NAV = [("shop.html", "Shop"), ("perform-fit-hoodie.html", "The Hoodie"), ("lookbook.html", "Lookbook"),
        ("our-story.html", "Our Story"), ("team-orders.html", "Team Orders")]
 
@@ -37,6 +39,21 @@ PHOTOS = {  # file stem: alt text
   "sky-squat": "The hoodie worn outdoors against a blue sky",
   "flatlay-gym-floor": "Hoodie folded on a speckled gym floor",
 }
+# Prices and stock come from stock.json (the same file the checkout reads).
+STOCK = json.load(open(os.path.join(OUT, "stock.json")))
+PR = {k: v["price_pence"] / 100 for k, v in STOCK["products"].items()}
+ADDON = STOCK["products"]["wraps"].get("addon_pence", 0) / 100
+def gbp(x): return f"£{x:.2f}"
+# TAFFER product photos: TAFFER's own shoot, as used on the Shop4Supplements listings.
+# TODO before launch: confirm TAFFER are happy for us to use them, then download into img/products/.
+_CDN = "https://cdn.shopify.com/s/files/1/0451/0525/products/"
+TAFFER_IMG = {
+  "grips": [_CDN + f + "?v=1571438815" for f in ("untitleduntitled_shoot1603102-2.jpg", "untitleduntitled_shoot16031017.jpg",
+            "untitleduntitled_shoot16031027.jpg", "20150927-Taffershoot_Ironia_009.jpg", "untitleduntitled_shoot1603105.jpg")],
+  "wraps": [_CDN + f + "?v=1571438815" for f in ("TAFFER_RANNETUET.jpg", "untitleduntitled_shoot16031431.jpg",
+            "untitleduntitled_shoot16031419.jpg", "untitleduntitled_shoot16031418.jpg")],
+}
+
 def img(stem, cls="", sm=False, eager=False, attrs=""):
     src = f"img/{stem}{'-sm' if sm else ''}.jpg"
     load = 'fetchpriority="high"' if eager else 'loading="lazy"'
@@ -82,6 +99,7 @@ def header(path):
     <a class="brand" href="./" aria-label="S4S Fitness home"><img src="img/logo.png" alt="S4S Fitness" width="800" height="396"></a>
     <button class="menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
     <nav class="nav" id="nav" aria-label="Main">{links}<a class="nav-cta" href="perform-fit-hoodie.html">Buy · £34.99</a></nav>
+    <a class="cart-btn" href="#cart" data-cart-open aria-label="Basket">{BAG_ICON}<span class="cart-count" data-cart-count hidden>0</span></a>
   </div>
 </header>
 <main id="main">
@@ -97,6 +115,8 @@ FOOTER = f"""</main>
     </div>
     <div><h4>Shop</h4><ul>
       <li><a href="perform-fit-hoodie.html">Perform-Fit Hoodie</a></li>
+      <li><a href="training-kit.html">The Training Kit</a></li>
+      <li><a href="shop.html#accessories">Training accessories</a></li>
       <li><a href="shop.html">All products</a></li>
       <li><a href="team-orders.html">Team &amp; gym orders</a></li>
     </ul></div>
@@ -117,6 +137,26 @@ FOOTER = f"""</main>
     <span><a href="terms.html">Terms of sale</a> · <a href="privacy.html">Privacy</a> · <a href="privacy.html#cookies" data-cookie-settings>Cookie settings</a></span>
   </div>
 </footer>
+<div class="cart-drawer" id="cart" hidden role="dialog" aria-modal="true" aria-label="Your basket">
+  <div class="cart-panel">
+    <div class="cart-head"><h2>Your basket</h2><button type="button" class="cart-close" aria-label="Close basket">✕</button></div>
+    <ul class="cart-lines"></ul>
+    <p class="cart-nudge"></p>
+    <div class="cart-foot">
+      <div class="opt-label"><span>Delivering to</span></div>
+      <div class="region" role="group" aria-label="Delivering to">
+        <button type="button" data-region="uk" aria-pressed="true">UK</button>
+        <button type="button" data-region="europe" aria-pressed="false">Europe</button>
+        <button type="button" data-region="world" aria-pressed="false">Rest of world</button>
+      </div>
+      <p class="cart-ship"></p>
+      <div class="cart-sum"><span>Total</span><b class="cart-total">£0.00</b></div>
+      <button type="button" class="btn btn-primary cart-checkout" disabled>Checkout</button>
+      <p class="cart-note" role="status"></p>
+      <p class="small">Secure checkout by Stripe. Card, Apple Pay or Google Pay.</p>
+    </div>
+  </div>
+</div>
 <script src="site.js" defer></script>
 </body>
 </html>
@@ -320,7 +360,7 @@ pdp = f"""
       <div class="thumbs">{thumbs}</div>
     </div>
 
-    <div class="buybox" id="buybox">
+    <div class="buybox" id="buybox" data-product="hoodie" data-name="Perform-Fit Full Zip Hoodie" data-price="34.99">
       <p class="eyebrow">S4S Fitness · Training hoodie</p>
       <h1>Perform-Fit <span class="blue">Full Zip</span> Hoodie</h1>
       <div class="price"><strong>£34.99</strong><em>FINAL RUN</em></div>
@@ -334,13 +374,12 @@ pdp = f"""
       <div class="opt-label"><span>Size <small class="model-size">· Model wears M</small></span><a href="#size-guide">Size guide</a></div>
       <div class="sizes" role="group" aria-label="Choose a size" id="size-picker">{size_btns}</div>
 
-      <div class="opt-label"><span>Delivering to</span></div>
-      <div class="region" role="group" aria-label="Delivering to">
-        <button type="button" id="region-uk" data-region="uk" aria-pressed="true">UK</button>
-        <button type="button" id="region-europe" data-region="europe" aria-pressed="false">Europe</button>
-        <button type="button" id="region-world" data-region="world" aria-pressed="false">Rest of world</button>
-      </div>
-      <p class="ship-note" id="ship-note">UK tracked delivery £5.99 (free when you buy 2)</p>
+      <label class="addon">
+        <input type="checkbox" id="addon">
+        <span class="addon-img"><img src="{TAFFER_IMG['wraps'][0]}&width=160" alt="" loading="lazy"></span>
+        <span><b>Add TAFFER Wrist Wraps for <span id="addon-price">£19.99</span></b><br><small>Save £2 when bought with a hoodie. <a href="taffer-wrist-wraps.html">Details</a></small></span>
+      </label>
+      <p class="ship-note">UK tracked delivery £5.99, free over £65. <a href="training-kit.html">Or get the full Training Kit</a></p>
 
       <div class="buy-row">
         <div class="qty" aria-label="Quantity">
@@ -350,7 +389,7 @@ pdp = f"""
         </div>
         <button class="btn btn-primary" id="cta" type="button" disabled>Choose a size</button>
       </div>
-      <p class="buy-note" id="buy-note" role="status">Pick your size to continue to secure checkout.</p>
+      <p class="buy-note" id="buy-note" role="status">Pick your size to add it to your basket.</p>
 
       <div class="assure">
         <div><span><b>Dispatched in 24 hrs</b><br>Tracked UK delivery</span></div>
@@ -433,41 +472,184 @@ pdp = f"""
 page("perform-fit-hoodie.html", "Perform-Fit Full Zip Hoodie", "The S4S Fitness Perform-Fit Full Zip Training Hoodie. Tapered fit, contrast hood, zipped pockets. Sizes S to XXL, now £34.99.", pdp,
      extra_head='<script type="application/ld+json">' + json.dumps(product_ld) + "</script>\n")
 
+
+# ======================================================================
+# ACCESSORY + KIT PAGES
+# ======================================================================
+def gallery(images):  # images: list of (full_src, thumb_src, alt)
+    th = "".join(f'<button type="button" data-full="{f}" data-alt="{a}" aria-label="Show photo {k+1}"{" aria-current=" + chr(34) + "true" + chr(34) if k == 0 else ""}><img src="{t}" alt="" loading="lazy"></button>'
+                 for k, (f, t, a) in enumerate(images))
+    nav = '<button class="gnav prev" type="button" aria-label="Previous photo">←</button><button class="gnav next" type="button" aria-label="Next photo">→</button>' if len(images) > 1 else ""
+    return f"""<div id="gallery">
+      <div class="gallery-main"><img id="gallery-img" src="{images[0][0]}" alt="{images[0][2]}" fetchpriority="high">{nav}</div>
+      {'<div class="thumbs">' + th + '</div>' if len(images) > 1 else ''}
+    </div>"""
+def cdn(urls, alt):
+    return [(u + "&width=1100", u + "&width=240", alt) for u in urls]
+
+def product_page(pid, path, title, eyebrow, h1, lede, images, details, faq, desc, made_for="", note="", sized=False, crumbs_name=None, extra_box=""):
+    price = PR[pid]
+    sizes = f"""<div class="opt-label"><span>Hoodie size <small class="model-size">· Model wears M</small></span><a href="perform-fit-hoodie.html#size-guide">Size guide</a></div>
+      <div class="sizes" role="group" aria-label="Choose a hoodie size" id="size-picker">{size_btns}</div>""" if sized else ""
+    body = f"""
+<div class="wrap">
+  <nav class="crumbs" aria-label="Breadcrumb" style="margin:28px 0 0"><a href="./">Home</a><span>/</span><a href="shop.html">Shop</a><span>/</span><span>{crumbs_name or title}</span></nav>
+  <div class="pdp">
+    {gallery(images)}
+    <div class="buybox" id="buybox" data-product="{pid}" data-name="{title}" data-price="{price:.2f}">
+      <p class="eyebrow">{eyebrow}</p>
+      <h1>{h1}</h1>
+      <div class="price"><strong>{gbp(price)}</strong></div>
+      <p class="lede">{lede}</p>
+      {f'<p class="made-for"><b>Made for</b> {made_for}</p>' if made_for else ''}
+      {f'<p class="final-note">{note}</p>' if note else ''}
+      {extra_box}
+      {sizes}
+      <div class="buy-row">
+        <div class="qty" aria-label="Quantity">
+          <button type="button" id="qty-down" aria-label="Decrease quantity">−</button>
+          <output id="qty" aria-live="polite">1</output>
+          <button type="button" id="qty-up" aria-label="Increase quantity">+</button>
+        </div>
+        <button class="btn btn-primary" id="cta" type="button" {'disabled' if sized else ''}>{'Choose a size' if sized else 'Add to basket · ' + gbp(price)}</button>
+      </div>
+      <p class="buy-note" id="buy-note" role="status"></p>
+      <div class="assure">
+        <div><span><b>Dispatched in 24 hrs</b><br>Tracked UK delivery</span></div>
+        <div><span><b>Free UK delivery</b><br>On orders over £65</span></div>
+        <div><span><b>30-day returns</b><br>Unused, in packaging</span></div>
+        <div><span><b>Secure checkout</b><br>Card, Apple Pay, Google Pay</span></div>
+      </div>
+      <div class="acc" id="details">
+        <details open><summary>Details</summary><div class="acc-body">{details}</div></details>
+        {faq}
+      </div>
+    </div>
+  </div>
+</div>
+<section class="section"><div class="wrap">
+  <div class="section-head"><div><p class="eyebrow">Complete the kit</p><h2>Train in <span class="blue">S4S</span></h2></div><a class="link" href="shop.html">Shop all</a></div>
+  {{CROSS}}
+</div></section>
+<div class="mbar" aria-hidden="false">
+  <div><b>{gbp(price)}</b><span id="mbar-size">{'Sizes S to XXL' if sized else 'Qty 1'}</span></div>
+  <button class="btn btn-primary" id="mbar-cta" type="button">{'Choose size' if sized else 'Add to basket'}</button>
+</div>
+"""
+    ld = {"@context": "https://schema.org", "@type": "Product", "name": title, "description": desc,
+          "image": [images[0][0] if images[0][0].startswith("http") else SITE + "/" + images[0][0]],
+          "offers": {"@type": "Offer", "priceCurrency": "GBP", "price": f"{price:.2f}",
+                     "availability": "https://schema.org/InStock", "url": SITE + "/" + path}}
+    if pid in ("grips", "wraps"): ld["brand"] = {"@type": "Brand", "name": "TAFFER"}
+    return body, ld
+
+def card(href, src, name, price_html, sub, tag=""):
+    return f"""<a class="card" href="{href}">
+      <div class="frame">{f'<span class="tag">{tag}</span>' if tag else ''}<img src="{src}" alt="{name}" loading="lazy"></div>
+      <h3>{name}</h3><div class="meta">{price_html}</div><p class="sub">{sub}</p></a>"""
+
+KIT_SEP = PR["hoodie"] + PR["grips"] + PR["wraps"]
+CARDS = {
+  "kit":    card("training-kit.html", "img/graffiti-hands-on-hips-sm.jpg", "The Training Kit", f"<b>{gbp(PR['kit'])}</b> <s>{gbp(KIT_SEP)} separately</s>", "Hoodie + TAFFER grips + wrist wraps", "BUNDLE"),
+  "hoodie": card("perform-fit-hoodie.html", "img/graffiti-hands-on-hips-sm.jpg", "Perform-Fit Full Zip Hoodie", f"<b>{gbp(PR['hoodie'])}</b>", "Grey marl · S to XXL", "FINAL RUN"),
+  "grips":  card("taffer-lifting-grips.html", TAFFER_IMG["grips"][0] + "&width=600", "TAFFER Pro Lifting Grips", f"<b>{gbp(PR['grips'])}</b>", "Handmade in Finland · pair"),
+  "wraps":  card("taffer-wrist-wraps.html", TAFFER_IMG["wraps"][0] + "&width=600", "TAFFER Wrist Wraps", f"<b>{gbp(PR['wraps'])}</b>", "Handmade in Finland · pair"),
+  "chalk":  card("beast-liquid-chalk.html", "img/products/beast-liquid-chalk-sm.jpg", "Beast Liquid Chalk", f"<b>{gbp(PR['chalk'])}</b>", "Clip-on bottle · UK delivery only", "LAST FEW"),
+}
+def cross(exclude):
+    return '<div class="shop-grid">' + "".join(v for k, v in CARDS.items() if k != exclude and k != "chalk")[:100000] + "</div>"
+
+WARRANTY = "TAFFER products are covered by the maker's warranty against manufacturing and material faults."
+# --- Grips
+body, ld = product_page("grips", "taffer-lifting-grips.html", "TAFFER Pro Lifting Grips", "TAFFER · Handmade in Finland",
+  'TAFFER Pro <span class="blue">Lifting Grips</span>',
+  "Hold on longer on your pulling work. A grippy rubber pad wraps the bar for you, so your back and lats tire before your hands do.",
+  cdn(TAFFER_IMG["grips"], "TAFFER Pro Lifting Grips"),
+  """<ul><li>Sold as a pair, one size for men and women</li><li>Adjustable wrist strap, 14–24 cm</li>
+  <li>Shaped left and right grips with a synthetic rubber pad</li><li>Wide, soft wrist strap spreads the load</li>
+  <li>Rubber, lycra and polyester · handmade in Finland</li></ul>""",
+  """<details><summary>How to use them</summary><div class="acc-body"><p>Fasten the strap round your wrist, lay the rubber pad over the bar and close your grip on top. No wrapping or threading, so they're quick between sets.</p></div></details>
+  <details><summary>Care</summary><div class="acc-body"><p>Hand wash only. Rinse the rubber with water now and then to keep it grippy, and keep the Velcro closed when you're not using them.</p></div></details>
+  <details><summary>Allergy note</summary><div class="acc-body"><p>The synthetic rubber is made where natural rubber is also handled. Not recommended if you're sensitive to latex or rubber.</p></div></details>""",
+  "TAFFER Pro Lifting Grips, handmade in Finland. Grippy rubber pads for deadlifts, pull-ups and rows. Sold in pairs.",
+  made_for="deadlifts · pull-ups · rows · lat pull-downs")
+page("taffer-lifting-grips.html", "TAFFER Pro Lifting Grips", "TAFFER Pro Lifting Grips, handmade in Finland. Grippy rubber pads for deadlifts, pull-ups and rows. Sold in pairs.",
+     body.replace("{CROSS}", cross("grips")), extra_head='<script type="application/ld+json">' + json.dumps(ld) + "</script>\n")
+# --- Wraps
+body, ld = product_page("wraps", "taffer-wrist-wraps.html", "TAFFER Wrist Wraps", "TAFFER · Handmade in Finland",
+  'TAFFER <span class="blue">Wrist Wraps</span>',
+  "Support for high-rep pressing, cleans and conditioning work. Extra wide, with enough give to let your wrists move naturally.",
+  cdn(TAFFER_IMG["wraps"], "TAFFER Wrist Wraps"),
+  f"""<ul><li>Sold as a pair, one size for men and women</li><li>38 cm long, 10 cm wide: wider than most</li>
+  <li>Supportive but flexible, for natural wrist movement</li><li>Hand washable · handmade in Finland</li></ul>
+  <p><b>{gbp(ADDON)} when you buy them with a Perform-Fit Hoodie.</b></p>""",
+  """<details><summary>Are they for heavy powerlifting?</summary><div class="acc-body"><p>They're built for functional training and high-rep work, where you want support but still need your wrists to move. If you want your wrists locked solid for a max bench, a stiffer powerlifting wrap is the better choice.</p></div></details>""",
+  "TAFFER Wrist Wraps, handmade in Finland. Extra-wide, flexible support for functional training and high-rep work. Sold in pairs.",
+  made_for="functional training · Olympic lifts · pressing · high reps")
+page("taffer-wrist-wraps.html", "TAFFER Wrist Wraps", "TAFFER Wrist Wraps, handmade in Finland. Extra-wide, flexible support for functional training and high-rep work. Sold in pairs.",
+     body.replace("{CROSS}", cross("wraps")), extra_head='<script type="application/ld+json">' + json.dumps(ld) + "</script>\n")
+# --- Chalk
+body, ld = product_page("chalk", "beast-liquid-chalk.html", "Beast Liquid Chalk", "Beast · Liquid chalk",
+  'Beast <span class="blue">Liquid Chalk</span>',
+  "Grip without the mess. Rub it in, let it dry and you're set, with no clouds of chalk dust over the gym floor. The bottle clips on to your bag.",
+  [("img/products/beast-liquid-chalk.jpg", "img/products/beast-liquid-chalk-sm.jpg", "Beast Liquid Chalk bottle with carabiner clip")],
+  """<ul><li>Clip-on bottle with carabiner</li><li>Dries in seconds for a dry, chalky grip</li><li>No loose chalk mess</li></ul>""",
+  """<details><summary>Why UK delivery only?</summary><div class="acc-body"><p>Liquid chalk is a liquid with restrictions on international post, so we only send it to UK addresses.</p></div></details>""",
+  "Beast Liquid Chalk in a clip-on bottle. Dry grip without the mess. UK delivery only.",
+  made_for="pull-ups · deadlifts · kettlebells · bar work", note="<b>Only a few left.</b> UK delivery only.")
+page("beast-liquid-chalk.html", "Beast Liquid Chalk", "Beast Liquid Chalk in a clip-on bottle. Dry grip without the mess. UK delivery only.",
+     body.replace("{CROSS}", cross("chalk")), extra_head='<script type="application/ld+json">' + json.dumps(ld) + "</script>\n")
+# --- Kit
+kit_imgs = [("img/graffiti-hands-on-hips.jpg", "img/graffiti-hands-on-hips-sm.jpg", PHOTOS["graffiti-hands-on-hips"])] + \
+           cdn(TAFFER_IMG["grips"][:2], "TAFFER Pro Lifting Grips") + cdn(TAFFER_IMG["wraps"][:2], "TAFFER Wrist Wraps") + \
+           [("img/flatlay-dumbbells.jpg", "img/flatlay-dumbbells-sm.jpg", PHOTOS["flatlay-dumbbells"])]
+kit_box = f"""<div class="kit-list">
+        <div><b>Perform-Fit Full Zip Hoodie</b><span>{gbp(PR['hoodie'])}</span></div>
+        <div><b>TAFFER Pro Lifting Grips</b><span>{gbp(PR['grips'])}</span></div>
+        <div><b>TAFFER Wrist Wraps</b><span>{gbp(PR['wraps'])}</span></div>
+        <div class="kit-save"><b>Bought separately</b><span><s>{gbp(KIT_SEP)}</s></span></div>
+        <div class="kit-save"><b>Training Kit price</b><span class="blue">{gbp(PR['kit'])} · save {gbp(KIT_SEP - PR['kit'])}</span></div>
+      </div>"""
+body, ld = product_page("kit", "training-kit.html", "The Training Kit", "S4S Fitness × TAFFER · Bundle",
+  'The <span class="blue">Training Kit</span>',
+  "Everything for the session in one go: the Perform-Fit hoodie to warm up in, TAFFER grips for your pulls and TAFFER wraps for your pressing. Free UK delivery.",
+  kit_imgs,
+  """<ul><li>Perform-Fit Full Zip Hoodie in your size (final run)</li><li>TAFFER Pro Lifting Grips, pair, one size</li><li>TAFFER Wrist Wraps, pair, one size</li><li>Ships together in one parcel · free UK delivery</li></ul>""",
+  """<details><summary>Can I choose different sizes?</summary><div class="acc-body"><p>The hoodie comes in S to XXL. The grips and wraps are one size and adjust to fit.</p></div></details>
+  <details><summary>Is it a good gift?</summary><div class="acc-body"><p>It's made for it. Everything arrives together, and we'll gladly leave the prices off the parcel. Just add a note at checkout or email us.</p></div></details>""",
+  "The S4S Training Kit: Perform-Fit Full Zip Hoodie, TAFFER Pro Lifting Grips and TAFFER Wrist Wraps, together for less.",
+  made_for="functional training · lifting · conditioning", sized=True, extra_box=kit_box)
+page("training-kit.html", "The Training Kit", "The S4S Training Kit: Perform-Fit Full Zip Hoodie, TAFFER Pro Lifting Grips and TAFFER Wrist Wraps, together for less.",
+     body.replace("{CROSS}", cross("kit")), extra_head='<script type="application/ld+json">' + json.dumps(ld) + "</script>\n")
+
 # ======================================================================
 # SHOP
 # ======================================================================
 shop = f"""
 <section class="page-hero"><div class="wrap">
   <p class="eyebrow">Shop</p>
-  <h1>The <span class="blue">collection</span></h1>
-  <p class="lede">One piece, done properly. The Perform-Fit is where S4S Fitness started. This is the final run, and when it's gone, it's gone.</p>
+  <h1>Train in <span class="blue">S4S</span></h1>
+  <p class="lede">The Perform-Fit hoodie, the final run of the piece S4S Fitness started with, plus the kit we rate for functional training. Free UK delivery over £65.</p>
 </div></section>
 
 <section class="section"><div class="wrap">
-  <div class="shop-grid">
-    <a class="card" href="perform-fit-hoodie.html">
-      <div class="frame"><span class="tag">FINAL RUN</span>{img("graffiti-hands-on-hips", sm=True)}</div>
-      <h3>Perform-Fit Full Zip Hoodie</h3>
-      <div class="meta"><b>£34.99</b></div>
-      <p class="sub">Grey marl · S to XXL</p>
-    </a>
+  <div class="section-head"><div><p class="eyebrow">Clothing</p><h2>The <span class="blue">collection</span></h2></div></div>
+  <div class="shop-grid">{CARDS["kit"]}{CARDS["hoodie"]}
     <a class="card" href="team-orders.html">
       <div class="frame">{img("flatlay-dumbbells", sm=True)}</div>
-      <h3>Team &amp; gym orders</h3>
-      <div class="meta"><b>Bulk</b></div>
-      <p class="sub">Kit out your squad. Ask for a price</p>
+      <h3>Team &amp; gym orders</h3><div class="meta"><b>Bulk</b></div><p class="sub">Kit out your squad. Ask for a price</p>
     </a>
-    <div class="card soon">
-      <div class="frame"><img src="img/logo-mark.png" alt="" width="480" height="193" loading="lazy"></div>
-      <h3>Next drop</h3>
-      <div class="meta"><b>Coming soon</b></div>
-      <p class="sub">Join the drop list below to hear first</p>
-    </div>
   </div>
+</div></section>
+
+<section class="section" id="accessories" style="padding-top:0"><div class="wrap">
+  <div class="section-head"><div><p class="eyebrow">Training accessories</p><h2>Grip &amp; <span class="blue">support</span></h2>
+  <p class="lede" style="margin-top:14px">Kit we've sold and trained with since the Shop4Supplements days. TAFFER grips and wraps are handmade in Finland.</p></div></div>
+  <div class="shop-grid">{CARDS["grips"]}{CARDS["wraps"]}{CARDS["chalk"]}</div>
 </div></section>
 {signup("drop-list-shop")}
 """
-page("shop.html", "Shop", "Shop S4S Fitness training wear: the Perform-Fit Full Zip Hoodie and team orders.", shop)
+page("shop.html", "Shop", "Shop S4S Fitness: the Perform-Fit Full Zip Hoodie, the Training Kit, and TAFFER lifting grips and wrist wraps.", shop)
 
 # ======================================================================
 # LOOKBOOK
@@ -827,7 +1009,7 @@ confirmed = f"""
 page("order-confirmed.html", "Order confirmed", "Thanks for your S4S Fitness order.", confirmed, extra_head='<meta name="robots" content="noindex">\n')
 
 # ---------------------------------------------------------------- extras
-pages = ["", "perform-fit-hoodie.html", "shop.html", "lookbook.html", "our-story.html", "team-orders.html", "delivery-returns.html", "contact.html", "privacy.html", "terms.html"]
+pages = ["", "perform-fit-hoodie.html", "training-kit.html", "taffer-lifting-grips.html", "taffer-wrist-wraps.html", "beast-liquid-chalk.html", "shop.html", "lookbook.html", "our-story.html", "team-orders.html", "delivery-returns.html", "contact.html", "privacy.html", "terms.html"]
 with open(os.path.join(OUT, "sitemap.xml"), "w") as f:
     f.write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
             "".join(f"  <url><loc>{SITE}/{p}</loc></url>\n" for p in pages) + "</urlset>\n")

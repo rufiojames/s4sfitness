@@ -460,3 +460,60 @@ button.btn:disabled{background:var(--raise);color:var(--dim);cursor:not-allowed}
 .consent-btns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 .consent .btn{height:44px;padding:0 22px;font-size:16px}
 .consent .btn-ghost{background:var(--line)}
+
+/* ---------- basket ---------- */
+.nav{margin-left:auto}
+.cart-btn{position:relative;display:grid;place-items:center;width:44px;height:44px;color:var(--ink);text-decoration:none;flex:none}
+.cart-btn:hover{color:var(--brand)}
+.cart-count{position:absolute;top:2px;right:0;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--brand);color:var(--on-brand);font:700 12px/19px var(--body);text-align:center}
+.cart-count[hidden]{display:none}
+@media (max-width:900px){.site-header .wrap{gap:6px}.brand{margin-right:auto}.cart-btn{order:2}.menu-btn{order:3}}
+.cart-drawer{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);opacity:0;transition:opacity .25s}
+.cart-drawer.open{opacity:1}
+.cart-panel{position:absolute;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--bg-2);border-left:1px solid var(--line);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease}
+.cart-drawer.open .cart-panel{transform:none}
+.cart-head{display:flex;justify-content:space-between;align-items:center;padding:20px var(--gutter,20px);border-bottom:1px solid var(--line)}
+.cart-head h2{font-size:24px;margin:0}
+.cart-close{background:none;border:0;color:var(--ink);font-size:22px;width:44px;height:44px;cursor:pointer}
+.cart-lines{list-style:none;margin:0;padding:8px var(--gutter,20px);overflow-y:auto;flex:1}
+.cart-lines li{display:grid;grid-template-columns:72px 1fr auto;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);align-items:start}
+.cart-lines li img{width:72px;height:80px;object-fit:cover;background:var(--surface);display:block}
+.cart-lines li a{color:var(--ink);text-decoration:none}
+.cart-lines li span{display:block;font-size:14px;color:var(--muted);margin-top:2px}
+.cart-lines li span.blue{color:var(--brand)}
+.cart-lines li.cart-empty{display:block;color:var(--muted);border:0;padding:30px 0}
+.cart-lines li.cart-empty a{color:var(--brand)}
+.cart-price{text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.qty.sm{height:36px;margin-top:10px;width:max-content}
+.qty.sm button{width:34px;font-size:18px}
+.qty.sm output{width:30px}
+.link-btn{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;font:inherit;font-size:13px;cursor:pointer}
+.link-btn:hover{color:var(--ink)}
+.cart-nudge{margin:0;padding:10px var(--gutter,20px);font-size:14px;color:var(--brand)}
+.cart-nudge:empty{display:none}
+.cart-nudge .link-btn{color:var(--brand);font-weight:600;margin-left:6px}
+.cart-foot{padding:16px var(--gutter,20px) calc(16px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--bg)}
+.cart-foot .region{margin-bottom:8px}
+.cart-ship{font-size:14px;color:var(--muted);margin:6px 0 12px}
+.cart-sum{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;font-size:16px}
+.cart-sum b{font:800 italic 26px var(--display)}
+.cart-checkout{width:100%}
+.cart-note{color:var(--sale);font-size:14px;margin:8px 0 0;min-height:0}
+.cart-note:empty{display:none}
+.cart-foot .small{margin:10px 0 0;font-size:13px;color:var(--dim)}
+
+/* add-on + kit */
+.addon{display:grid;grid-template-columns:22px 56px 1fr;gap:12px;align-items:center;padding:14px;margin:4px 0 14px;background:var(--surface);border:1.5px solid var(--line);cursor:pointer;font-size:15px}
+.addon:has(input:checked){border-color:var(--brand)}
+.addon input{width:20px;height:20px;accent-color:var(--brand);margin:0}
+.addon-img img{width:56px;height:56px;object-fit:cover;display:block}
+.addon small{color:var(--muted);font-size:13px}
+.addon a{color:var(--brand)}
+.kit-list{border:1.5px solid var(--line);background:var(--surface);margin:4px 0 20px}
+.kit-list div{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:15px}
+.kit-list div:last-child{border-bottom:0}
+.kit-list span{color:var(--muted);font-variant-numeric:tabular-nums}
+.kit-list .kit-save b{font-weight:600}
+.kit-list .kit-save span.blue{color:var(--brand);font-weight:700}
+.card .meta s{color:var(--dim);font-size:.85em;margin-left:6px}
+.blue{color:var(--brand)}
