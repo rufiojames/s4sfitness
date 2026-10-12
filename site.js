@@ -40,13 +40,14 @@
     gtag("js", new Date());
     gtag("config", GA_ID);
   }
-  const GA_ITEM = q => [{ item_id: "S4S-PF-HOODIE", item_name: "Perform-Fit Full Zip Hoodie", price: 34.99, quantity: q || 1 }];
+  const GA_ITEM = (q, ids) => (ids && ids.length ? ids : ["hoodie"]).map(id => ({ item_id: id, quantity: ids && ids.length ? 1 : (q || 1) }));
   function gaEvent(name, data, opts) {
     if (!window.gtag) return;
     const d = data || {};
-    if (name === "ViewContent") gtag("event", "view_item", { currency: "GBP", value: 34.99, items: GA_ITEM(1) });
-    if (name === "InitiateCheckout") gtag("event", "begin_checkout", { currency: "GBP", value: d.value, items: GA_ITEM(d.num_items) });
-    if (name === "Purchase") gtag("event", "purchase", { currency: "GBP", value: d.value, transaction_id: (opts && opts.eventID) || undefined, items: GA_ITEM(d.num_items) });
+    if (name === "ViewContent") gtag("event", "view_item", { currency: "GBP", value: d.value, items: GA_ITEM(1, d.content_ids) });
+    if (name === "AddToCart") gtag("event", "add_to_cart", { currency: "GBP", value: d.value, items: GA_ITEM(1, d.content_ids) });
+    if (name === "InitiateCheckout") gtag("event", "begin_checkout", { currency: "GBP", value: d.value, items: GA_ITEM(d.num_items, d.content_ids) });
+    if (name === "Purchase") gtag("event", "purchase", { currency: "GBP", value: d.value, transaction_id: (opts && opts.eventID) || undefined, items: GA_ITEM(d.num_items, d.content_ids) });
   }
   // fire an event only if the visitor has consented
   const track = (name, data, opts) => {
@@ -56,13 +57,14 @@
   };
 
   function pageEvents() {
-    if ($("#buybox")) track("ViewContent", { content_ids: ["S4S-PF-HOODIE"], content_name: "Perform-Fit Full Zip Hoodie", content_type: "product", value: 34.99, currency: "GBP" });
+    const bb = $("#buybox");
+    if (bb) track("ViewContent", { content_ids: [bb.dataset.product], content_name: bb.dataset.name, content_type: "product", value: +bb.dataset.price, currency: "GBP" });
     if (/order-confirmed/.test(location.pathname)) {
       const sid = new URLSearchParams(location.search).get("session_id") || "";
       let order = null; try { order = JSON.parse(store.get("s4s_pending", sessionStorage) || "null"); } catch (e) {}
       const done = store.get("s4s_tracked_" + sid);
       if (order && sid && !done) {
-        track("Purchase", { value: order.value, currency: "GBP", content_ids: ["S4S-PF-HOODIE"], content_type: "product", num_items: order.qty },
+        track("Purchase", { value: order.value, currency: "GBP", content_ids: order.ids || ["hoodie"], content_type: "product", num_items: order.qty },
               { eventID: sid });
         store.set("s4s_tracked_" + sid, "1");
       }
@@ -90,22 +92,6 @@
     e.preventDefault(); store.del(CONSENT_KEY); if (!$(".consent")) consentBanner();
   }));
 
-  /* ---- Product + checkout -------------------------------------------------
-     Checkout runs on Stripe. The price and delivery are set on the server
-     (netlify/functions/create-checkout.mjs) and sizes are switched on/off in stock.json. */
-  const PRODUCT = { price: 34.99 };
-  // Display copy of the delivery rates. The checkout function is the source of truth;
-  // keep these in step with ZONES in netlify/functions/create-checkout.mjs.
-  const ZONES = {
-    uk:     { name: "UK tracked delivery", first: 5.99, extra: 0, freeOver: 65, maxQty: 20 },
-    europe: { name: "Europe tracked delivery", first: 14.99, extra: 2, freeOver: null, maxQty: 4 },
-    world:  { name: "International tracked delivery", first: 25.99, extra: 4.99, freeOver: null, maxQty: 4 }
-  };
-  const CHECKOUT = "/api/checkout";
-  const money = n => "£" + n.toFixed(2);
-  const live = /(^|\.)s4sfitness\.com$/.test(location.hostname) || /netlify\.app$/.test(location.hostname) ||
-               /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-
   /* ---- Mobile menu ---- */
   const menuBtn = $(".menu-btn"), nav = $(".nav");
   if (menuBtn && nav) {
@@ -122,96 +108,200 @@
   /* ---- Year ---- */
   $$("[data-year]").forEach(el => (el.textContent = new Date().getFullYear()));
 
-  /* ---- Buy box (product page) ---- */
+  /* ---- Products, basket + checkout ----------------------------------------
+     Checkout runs on Stripe. Prices, stock and delivery are set on the server
+     (netlify/functions/create-checkout.mjs) from stock.json. The figures here are
+     a display copy so the basket can show totals before checkout. */
+  const PRODUCTS = {  // fallback if stock.json can't be read
+    hoodie: { name: "Perform-Fit Full Zip Hoodie", price: 34.99, units: 1, img: "img/graffiti-hands-on-hips-sm.jpg", url: "perform-fit-hoodie.html", sized: true },
+    grips:  { name: "TAFFER Pro Lifting Grips", price: 49.99, units: 0.5, img: "https://cdn.shopify.com/s/files/1/0451/0525/products/untitleduntitled_shoot1603102-2.jpg?v=1571438815&width=200", url: "taffer-lifting-grips.html" },
+    wraps:  { name: "TAFFER Wrist Wraps", price: 21.99, addon: 19.99, units: 0.5, img: "https://cdn.shopify.com/s/files/1/0451/0525/products/TAFFER_RANNETUET.jpg?v=1571438815&width=200", url: "taffer-wrist-wraps.html" },
+    chalk:  { name: "Beast Liquid Chalk", price: 9.99, units: 0.5, ukOnly: true, img: "img/products/beast-liquid-chalk-sm.jpg", url: "beast-liquid-chalk.html" },
+    kit:    { name: "The Training Kit", price: 94.99, units: 2, img: "img/graffiti-hands-on-hips-sm.jpg", url: "training-kit.html", sized: true, includes: ["hoodie", "grips", "wraps"] }
+  };
+  const SIZES = ["S", "M", "L", "XL", "XXL"];
+  // Display copy of the delivery rates; keep in step with ZONES in the checkout function.
+  const ZONES = {
+    uk:     { name: "UK tracked delivery", first: 5.99, extra: 0, freeOver: 65, maxUnits: 20 },
+    europe: { name: "Europe tracked delivery", first: 14.99, extra: 2, freeOver: null, maxUnits: 4 },
+    world:  { name: "International tracked delivery", first: 25.99, extra: 4.99, freeOver: null, maxUnits: 4 }
+  };
+  const CHECKOUT = "/api/checkout";
+  const money = n => "£" + n.toFixed(2);
+  const live = /(^|\.)s4sfitness\.com$/.test(location.hostname) || /netlify\.app$/.test(location.hostname) ||
+               /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  const soldOut = new Set();   // "hoodie:M", "grips", ...
+  const isOut = (id, size) => soldOut.has(id) || (size && soldOut.has("hoodie:" + size)) ||
+                              (PRODUCTS[id].includes || []).some(x => soldOut.has(x));
+  const stockReady = fetch("stock.json", { cache: "no-store" }).then(r => r.json()).then(st => {
+    Object.entries(st.sizes || {}).forEach(([k, v]) => { if (!v) soldOut.add("hoodie:" + k); });
+    Object.entries(st.products || {}).forEach(([id, p]) => {
+      if (!PRODUCTS[id]) return;
+      if (p.price_pence) PRODUCTS[id].price = p.price_pence / 100;
+      if (p.addon_pence) PRODUCTS[id].addon = p.addon_pence / 100;
+      if (p.in_stock === false) soldOut.add(id);
+      PRODUCTS[id].low = !!p.low;
+    });
+  }).catch(() => {});
+
+  /* basket: [{ id, size, qty }] kept in this browser */
+  const cart = {
+    items: (() => { try { return JSON.parse(store.get("s4s_cart") || "[]").filter(i => PRODUCTS[i.id]); } catch (e) { return []; } })(),
+    region: store.get("s4s_region") || "uk",
+    save() { store.set("s4s_cart", JSON.stringify(this.items)); store.set("s4s_region", this.region); drawCart(); },
+    add(id, size, qty) {
+      const hit = this.items.find(i => i.id === id && (i.size || "") === (size || ""));
+      if (hit) hit.qty = Math.min(20, hit.qty + qty); else this.items.push({ id, size: size || "", qty });
+      this.save();
+    },
+    count() { return this.items.reduce((a, i) => a + i.qty, 0); }
+  };
+  function totals() {
+    const hoodies = cart.items.filter(i => i.id === "hoodie").reduce((a, i) => a + i.qty, 0);
+    let sub = 0, units = 0, addonUsed = 0;
+    const lines = cart.items.map(i => {
+      const p = PRODUCTS[i.id]; let cost = p.price * i.qty, note = "";
+      if (i.id === "wraps" && p.addon) {
+        const n = Math.min(i.qty, hoodies - addonUsed); if (n > 0) { cost -= (p.price - p.addon) * n; addonUsed += n; note = "Add-on price with a hoodie"; }
+      }
+      sub += cost; units += p.units * i.qty;
+      return { ...i, p, cost, note };
+    });
+    const z = ZONES[cart.region];
+    const free = z.freeOver !== null && sub > z.freeOver;
+    const ship = !lines.length ? 0 : free ? 0 : z.first + z.extra * Math.max(0, Math.ceil(units) - 1);
+    let warn = "";
+    if (units > z.maxUnits) warn = cart.region === "uk" ? "That's a big order. For more, use our team orders form." : "International parcels are limited to 4 hoodies (or 2 Training Kits).";
+    const ukOnly = lines.find(l => l.p.ukOnly && cart.region !== "uk");
+    if (ukOnly) warn = ukOnly.p.name + " can only be sent within the UK.";
+    let shipLabel = free ? "Free " + z.name : z.name + " " + money(ship);
+    if (!free && z.freeOver !== null && lines.length) shipLabel += " · free over £" + z.freeOver;
+    if (cart.region !== "uk") shipLabel += ". Import charges may apply on delivery.";
+    return { lines, sub, ship, total: sub + ship, shipLabel, warn, hoodies };
+  }
+
+  /* basket drawer (markup is in every page footer) */
+  const drawer = $("#cart"), cartBtns = $$("[data-cart-open]");
+  function openCart() { if (!drawer) return; drawer.hidden = false; requestAnimationFrame(() => drawer.classList.add("open")); document.body.style.overflow = "hidden"; $(".cart-close", drawer).focus(); }
+  function closeCart() { if (!drawer) return; drawer.classList.remove("open"); document.body.style.overflow = ""; setTimeout(() => (drawer.hidden = true), 250); }
+  function drawCart(msg) {
+    const n = cart.count();
+    $$("[data-cart-count]").forEach(el => { el.textContent = n; el.hidden = !n; });
+    if (!drawer) return;
+    const t = totals(), list = $(".cart-lines", drawer);
+    list.innerHTML = t.lines.length ? t.lines.map((l, k) => `
+      <li>
+        <a href="${l.p.url}"><img src="${l.p.img}" alt="" loading="lazy"></a>
+        <div><a href="${l.p.url}"><b>${l.p.name}</b></a>${l.size ? `<span>Size ${l.size}</span>` : ""}${l.note ? `<span class="blue">${l.note}</span>` : ""}
+          <div class="qty sm"><button type="button" data-k="${k}" data-d="-1" aria-label="One fewer">−</button><output>${l.qty}</output><button type="button" data-k="${k}" data-d="1" aria-label="One more">+</button></div>
+        </div>
+        <div class="cart-price"><b>${money(l.cost)}</b><button type="button" class="link-btn" data-rm="${k}">Remove</button></div>
+      </li>`).join("") : `<li class="cart-empty">Your basket is empty. <a href="shop.html">Shop the range</a></li>`;
+    $$(".region button", drawer).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.region === cart.region)));
+    $(".cart-ship", drawer).textContent = t.lines.length ? t.shipLabel : "";
+    $(".cart-total", drawer).textContent = money(t.total);
+    // nudge: add-on wraps / free delivery
+    const nudge = $(".cart-nudge", drawer);
+    const hasWraps = cart.items.some(i => i.id === "wraps");
+    if (t.hoodies && !hasWraps && !soldOut.has("wraps")) nudge.innerHTML = `Add TAFFER Wrist Wraps for ${money(PRODUCTS.wraps.addon || PRODUCTS.wraps.price)} with your hoodie <button type="button" class="link-btn" data-add="wraps">Add</button>`;
+    else if (cart.region === "uk" && t.lines.length && t.sub <= 65) nudge.textContent = "Spend " + money(65.01 - t.sub) + " more for free UK delivery.";
+    else nudge.textContent = "";
+    const go = $(".cart-checkout", drawer);
+    go.disabled = !t.lines.length || !!t.warn || cart.busy;
+    go.textContent = cart.busy ? "Opening checkout…" : "Checkout · " + money(t.total);
+    $(".cart-note", drawer).textContent = msg || t.warn || "";
+  }
+  if (drawer) {
+    drawer.addEventListener("click", e => {
+      if (e.target === drawer || e.target.closest(".cart-close")) return closeCart();
+      const q = e.target.closest("[data-d]"), rm = e.target.closest("[data-rm]"), rg = e.target.closest("[data-region]"), ad = e.target.closest("[data-add]");
+      if (q) { const it = cart.items[+q.dataset.k]; it.qty = Math.max(0, Math.min(20, it.qty + +q.dataset.d)); if (!it.qty) cart.items.splice(+q.dataset.k, 1); cart.save(); }
+      if (rm) { cart.items.splice(+rm.dataset.rm, 1); cart.save(); }
+      if (rg) { cart.region = rg.dataset.region; cart.save(); }
+      if (ad) { cart.add(ad.dataset.add, "", 1); track("AddToCart", { content_ids: [ad.dataset.add], value: PRODUCTS[ad.dataset.add].addon || PRODUCTS[ad.dataset.add].price, currency: "GBP" }); }
+    });
+    $(".cart-checkout", drawer).addEventListener("click", checkout);
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && drawer.classList.contains("open")) closeCart(); });
+  }
+  cartBtns.forEach(b => b.addEventListener("click", e => { e.preventDefault(); openCart(); }));
+
+  async function checkout() {
+    if (!cart.items.length) return;
+    if (!live) { drawCart("Checkout opens once the site is live on s4sfitness.com."); return; }
+    cart.busy = true; drawCart();
+    try {
+      const r = await fetch(CHECKOUT, { method: "POST", headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ region: cart.region, items: cart.items }) });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.url) {
+        const value = d.value || totals().total, num = cart.count();
+        store.set("s4s_pending", JSON.stringify({ value, qty: num, ids: cart.items.map(i => i.id) }), sessionStorage);
+        track("InitiateCheckout", { value, currency: "GBP", content_ids: cart.items.map(i => i.id), content_type: "product", num_items: num });
+        location.href = d.url; return;
+      }
+      if (r.status === 409 && d.id) { soldOut.add(d.size ? "hoodie:" + d.size : d.id); }
+      cart.busy = false; drawCart(d.error || "Checkout couldn't start. Please try again.");
+    } catch (e) {
+      cart.busy = false; drawCart("Couldn't connect. Check your signal and try again.");
+    }
+  }
+  addEventListener("pageshow", () => { cart.busy = false; drawCart(); });
+  if (/order-confirmed/.test(location.pathname) && new URLSearchParams(location.search).get("session_id")) { cart.items = []; cart.save(); }
+  drawCart();
+  stockReady.then(() => drawCart());
+
+  /* ---- Buy box (any product page) ---- */
   const buy = $("#buybox");
   if (buy) {
-    let size = null, qty = 1, region = "uk", busy = false;
-    const cta = $("#cta"), note = $("#buy-note"), qtyOut = $("#qty"), shipNote = $("#ship-note");
+    const id = buy.dataset.product, P = PRODUCTS[id];
+    let size = null, qty = 1;
+    const cta = $("#cta"), note = $("#buy-note"), qtyOut = $("#qty"), addon = $("#addon");
     const mbarBtn = $("#mbar-cta"), mbarSize = $("#mbar-size");
-    const sizeBtns = $$(".sizes button", buy), rows = $$(".size-table tbody tr"), regionBtns = $$(".region button", buy);
-    const soldOut = new Set();
+    const sizeBtns = $$(".sizes button", buy), rows = $$(".size-table tbody tr");
+    const needSize = !!P.sized;
 
-    function shipping() {
-      const z = ZONES[region], sub = PRODUCT.price * qty;
-      if (z.freeOver !== null && sub > z.freeOver) return { label: "Free " + z.name, cost: 0 };
-      const cost = z.first + z.extra * (qty - 1);
-      let label = z.name + " " + money(cost);
-      if (z.freeOver !== null) label += " · add a second hoodie for free delivery";
-      else label += ". Import charges may apply on delivery. Max " + z.maxQty + " per order.";
-      return { label, cost };
-    }
     function render(msg) {
       sizeBtns.forEach(b => {
-        const out = soldOut.has(b.dataset.size);
+        const out = isOut(id, b.dataset.size);
         b.disabled = out; b.classList.toggle("out", out);
         b.setAttribute("aria-pressed", String(b.dataset.size === size));
         b.setAttribute("aria-label", out ? b.dataset.size + " sold out" : "Size " + b.dataset.size);
       });
       rows.forEach(r => r.classList.toggle("sel", r.dataset.size === size));
-      regionBtns.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.region === region)));
-      qtyOut.textContent = qty;
-      const ship = shipping();
-      if (shipNote) shipNote.textContent = ship.label;
-      const ready = !!size && !busy;
-      cta.disabled = !ready; if (mbarBtn) mbarBtn.disabled = busy;
-      if (busy) { cta.textContent = "Opening checkout…"; }
-      else if (size) {
-        cta.textContent = "Buy now · " + money(PRODUCT.price * qty);
-        note.textContent = msg || (qty + " × size " + size + ". Total with delivery " + money(PRODUCT.price * qty + ship.cost) + ".");
-      } else {
-        cta.textContent = "Choose a size";
-        note.textContent = msg || "Pick your size to continue to secure checkout.";
-      }
-      if (mbarBtn) mbarBtn.textContent = size ? "Buy now" : "Choose size";
-      if (mbarSize) mbarSize.textContent = size ? "Size " + size + " · Qty " + qty : "Sizes S to XXL";
+      if (qtyOut) qtyOut.textContent = qty;
+      const allOut = !needSize ? isOut(id) : SIZES.every(s => isOut(id, s));
+      const ready = (!needSize || !!size) && !allOut;
+      cta.disabled = !ready;
+      const extra = addon && addon.checked && !isOut("wraps") ? (PRODUCTS.wraps.addon || PRODUCTS.wraps.price) : 0;
+      if (allOut) { cta.textContent = "Sold out"; note.textContent = msg || "This has sold out. Join the drop list to hear about restocks."; }
+      else if (ready) {
+        cta.textContent = "Add to basket · " + money(P.price * qty + extra);
+        note.textContent = msg || (P.low ? "Only a few left." : "Secure checkout with card, Apple Pay or Google Pay.");
+      } else { cta.textContent = "Choose a size"; note.textContent = msg || "Pick your size to add it to your basket."; }
+      if (addon) { addon.disabled = isOut("wraps"); const lab = $("#addon-price"); if (lab) lab.textContent = money(PRODUCTS.wraps.addon || PRODUCTS.wraps.price); }
+      if (mbarBtn) mbarBtn.textContent = allOut ? "Sold out" : needSize && !size ? "Choose size" : "Add to basket";
+      if (mbarSize) mbarSize.textContent = needSize ? (size ? "Size " + size + " · Qty " + qty : "Sizes S to XXL") : "Qty " + qty;
     }
-
-    async function checkout() {
-      if (!size) { $("#size-picker").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
-      if (!live) { render("Checkout opens once the site is live on s4sfitness.com."); return; }
-      busy = true; render();
-      try {
-        const r = await fetch(CHECKOUT, { method: "POST", headers: { "Content-Type": "application/json" },
-                                          body: JSON.stringify({ size, qty, region }) });
-        const d = await r.json().catch(() => ({}));
-        if (r.ok && d.url) {
-          const value = Math.round((PRODUCT.price * qty + shipping().cost) * 100) / 100;
-          store.set("s4s_pending", JSON.stringify({ value, qty, size }), sessionStorage);
-          track("InitiateCheckout", { value, currency: "GBP", content_ids: ["S4S-PF-HOODIE"], content_type: "product", num_items: qty });
-          location.href = d.url; return;
-        }
-        if (r.status === 409) { soldOut.add(size); size = null; }
-        busy = false; render(d.error || "Checkout couldn't start. Please try again.");
-      } catch (e) {
-        busy = false; render("Couldn't connect. Check your signal and try again.");
-      }
+    function addToCart() {
+      if (needSize && !size) { $("#size-picker").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+      if (cta.disabled) return;
+      cart.add(id, size, qty);
+      let value = P.price * qty;
+      if (addon && addon.checked && !isOut("wraps") && !cart.items.some(i => i.id === "wraps")) { cart.add("wraps", "", 1); value += PRODUCTS.wraps.addon || PRODUCTS.wraps.price; }
+      track("AddToCart", { content_ids: [id], content_type: "product", value, currency: "GBP" });
+      render("Added to your basket."); openCart();
     }
-
-    const pick = s => { if (!soldOut.has(s)) { size = s; render(); } };
+    const pick = s => { if (!isOut(id, s)) { size = s; render(); } };
     sizeBtns.forEach(b => b.addEventListener("click", () => pick(b.dataset.size)));
-    rows.forEach(r => r.addEventListener("click", () => {
-      pick(r.dataset.size);
-      $("#size-picker").scrollIntoView({ behavior: "smooth", block: "center" });
-    }));
-    regionBtns.forEach(b => b.addEventListener("click", () => {
-      region = b.dataset.region;
-      qty = Math.min(qty, ZONES[region].maxQty);
-      render();
-    }));
-    $("#qty-up").addEventListener("click", () => { qty = Math.min(ZONES[region].maxQty, qty + 1); render(); });
-    $("#qty-down").addEventListener("click", () => { qty = Math.max(1, qty - 1); render(); });
-    cta.addEventListener("click", checkout);
-    if (mbarBtn) mbarBtn.addEventListener("click", checkout);
-    // returning from Stripe with the back button: reset the button
-    addEventListener("pageshow", () => { busy = false; render(); });
+    rows.forEach(r => r.addEventListener("click", () => { pick(r.dataset.size); $("#size-picker").scrollIntoView({ behavior: "smooth", block: "center" }); }));
+    const up = $("#qty-up"), down = $("#qty-down");
+    if (up) up.addEventListener("click", () => { qty = Math.min(10, qty + 1); render(); });
+    if (down) down.addEventListener("click", () => { qty = Math.max(1, qty - 1); render(); });
+    if (addon) addon.addEventListener("change", () => render());
+    cta.addEventListener("click", addToCart);
+    if (mbarBtn) mbarBtn.addEventListener("click", addToCart);
     render();
-
-    // sold-out sizes
-    fetch("stock.json", { cache: "no-store" }).then(r => r.json()).then(st => {
-      Object.entries(st.sizes || {}).forEach(([k, v]) => { if (!v) soldOut.add(k); });
-      if (soldOut.has(size)) size = null;
-      render();
-    }).catch(() => {});
+    stockReady.then(() => { if (size && isOut(id, size)) size = null; render(); });
 
     // show the mobile bar once the main button scrolls out of view
     const mbar = $(".mbar");
@@ -233,8 +323,8 @@
       thumbs.forEach((b, k) => k === i ? b.setAttribute("aria-current", "true") : b.removeAttribute("aria-current"));
     };
     thumbs.forEach((b, k) => b.addEventListener("click", () => show(k)));
-    $(".prev", gal).addEventListener("click", () => show(i - 1));
-    $(".next", gal).addEventListener("click", () => show(i + 1));
+    if ($(".prev", gal)) $(".prev", gal).addEventListener("click", () => show(i - 1));
+    if ($(".next", gal)) $(".next", gal).addEventListener("click", () => show(i + 1));
     main.addEventListener("click", () => openLightbox(thumbs.map(b => ({ src: b.dataset.full, alt: b.dataset.alt })), i));
     // swipe
     let x0 = null;

@@ -30,6 +30,7 @@
     <a class="brand" href="./" aria-label="S4S Fitness home"><img src="img/logo.png" alt="S4S Fitness" width="800" height="396"></a>
     <button class="menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
     <nav class="nav" id="nav" aria-label="Main"><a href="shop.html">Shop</a><a href="perform-fit-hoodie.html">The Hoodie</a><a href="lookbook.html">Lookbook</a><a href="our-story.html">Our Story</a><a href="team-orders.html">Team Orders</a><a class="nav-cta" href="perform-fit-hoodie.html">Buy · £34.99</a></nav>
+    <a class="cart-btn" href="#cart" data-cart-open aria-label="Basket"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="2"/></svg><span class="cart-count" data-cart-count hidden>0</span></a>
   </div>
 </header>
 <main id="main">
@@ -89,6 +90,8 @@
     </div>
     <div><h4>Shop</h4><ul>
       <li><a href="perform-fit-hoodie.html">Perform-Fit Hoodie</a></li>
+      <li><a href="training-kit.html">The Training Kit</a></li>
+      <li><a href="shop.html#accessories">Training accessories</a></li>
       <li><a href="shop.html">All products</a></li>
       <li><a href="team-orders.html">Team &amp; gym orders</a></li>
     </ul></div>
@@ -109,6 +112,26 @@
     <span><a href="terms.html">Terms of sale</a> · <a href="privacy.html">Privacy</a> · <a href="privacy.html#cookies" data-cookie-settings>Cookie settings</a></span>
   </div>
 </footer>
+<div class="cart-drawer" id="cart" hidden role="dialog" aria-modal="true" aria-label="Your basket">
+  <div class="cart-panel">
+    <div class="cart-head"><h2>Your basket</h2><button type="button" class="cart-close" aria-label="Close basket">✕</button></div>
+    <ul class="cart-lines"></ul>
+    <p class="cart-nudge"></p>
+    <div class="cart-foot">
+      <div class="opt-label"><span>Delivering to</span></div>
+      <div class="region" role="group" aria-label="Delivering to">
+        <button type="button" data-region="uk" aria-pressed="true">UK</button>
+        <button type="button" data-region="europe" aria-pressed="false">Europe</button>
+        <button type="button" data-region="world" aria-pressed="false">Rest of world</button>
+      </div>
+      <p class="cart-ship"></p>
+      <div class="cart-sum"><span>Total</span><b class="cart-total">£0.00</b></div>
+      <button type="button" class="btn btn-primary cart-checkout" disabled>Checkout</button>
+      <p class="cart-note" role="status"></p>
+      <p class="small">Secure checkout by Stripe. Card, Apple Pay or Google Pay.</p>
+    </div>
+  </div>
+</div>
 <script src="site.js" defer></script>
 </body>
 </html>
