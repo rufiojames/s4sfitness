@@ -131,6 +131,7 @@ h3{font-size:clamp(22px,2.2vw,28px);line-height:1}
 .price strong{font-family:var(--display);font-style:italic;font-weight:900;font-size:clamp(38px,4vw,50px);line-height:1}
 .price s{color:var(--muted);font-size:18px}
 .price em{font-style:normal;font-family:var(--display);font-weight:700;font-size:12px;color:var(--sale);border:1px solid currentColor;padding:3px 9px;letter-spacing:.12em}
+.price .deal{font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;background:var(--brand);color:var(--on-brand);padding:4px 10px}
 .ticks{list-style:none;padding:0;margin:24px 0 30px;display:grid;gap:10px}
 .ticks li{display:flex;gap:12px;color:var(--muted)}
 .ticks li::before{content:"";flex:none;width:10px;height:10px;margin-top:8px;background:var(--brand);transform:skewX(-20deg)}

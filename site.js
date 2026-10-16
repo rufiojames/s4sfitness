@@ -93,11 +93,13 @@
   /* ---- Product + checkout -------------------------------------------------
      Checkout runs on Stripe. The price and delivery are set on the server
      (netlify/functions/create-checkout.mjs) and sizes are switched on/off in stock.json. */
-  const PRODUCT = { price: 34.99 };
+  const PRODUCT = { price: 34.99, pair: 60 };
+  // 2 for £60: every pair is £60, an odd one is full price (mirrors create-checkout.mjs)
+  const itemsTotal = q => Math.floor(q / 2) * PRODUCT.pair + (q % 2) * PRODUCT.price;
   // Display copy of the delivery rates. The checkout function is the source of truth;
   // keep these in step with ZONES in netlify/functions/create-checkout.mjs.
   const ZONES = {
-    uk:     { name: "UK tracked delivery", first: 5.99, extra: 0, freeOver: 65, maxQty: 20 },
+    uk:     { name: "UK tracked delivery", first: 0, extra: 0, freeOver: null, maxQty: 20 },
     europe: { name: "Europe tracked delivery", first: 14.99, extra: 2, freeOver: null, maxQty: 4 },
     world:  { name: "International tracked delivery", first: 25.99, extra: 4.99, freeOver: null, maxQty: 4 }
   };
@@ -132,12 +134,10 @@
     const soldOut = new Set();
 
     function shipping() {
-      const z = ZONES[region], sub = PRODUCT.price * qty;
-      if (z.freeOver !== null && sub > z.freeOver) return { label: "Free " + z.name, cost: 0 };
+      const z = ZONES[region], sub = itemsTotal(qty);
       const cost = z.first + z.extra * (qty - 1);
-      let label = z.name + " " + money(cost);
-      if (z.freeOver !== null) label += " · add a second hoodie for free delivery";
-      else label += ". Import charges may apply on delivery. Max " + z.maxQty + " per order.";
+      if (cost === 0 || (z.freeOver !== null && sub > z.freeOver)) return { label: "Free " + z.name, cost: 0 };
+      const label = z.name + " " + money(cost) + ". Import charges may apply on delivery. Max " + z.maxQty + " per order.";
       return { label, cost };
     }
     function render(msg) {
@@ -156,8 +156,10 @@
       cta.disabled = !ready; if (mbarBtn) mbarBtn.disabled = busy;
       if (busy) { cta.textContent = "Opening checkout…"; }
       else if (size) {
-        cta.textContent = "Buy now · " + money(PRODUCT.price * qty);
-        note.textContent = msg || (qty + " × size " + size + ". Total with delivery " + money(PRODUCT.price * qty + ship.cost) + ".");
+        const tot = itemsTotal(qty), save = PRODUCT.price * qty - tot;
+        cta.textContent = "Buy now · " + money(tot);
+        note.textContent = msg || (qty + " × size " + size + (save > 0 ? " · 2 for £60, you save " + money(save) : "") +
+          ". Total with delivery " + money(tot + ship.cost) + "." + (qty === 1 ? " Add a second for £25.01 more (2 for £60)." : ""));
       } else {
         cta.textContent = "Choose a size";
         note.textContent = msg || "Pick your size to continue to secure checkout.";
@@ -175,7 +177,7 @@
                                           body: JSON.stringify({ size, qty, region }) });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.url) {
-          const value = Math.round((PRODUCT.price * qty + shipping().cost) * 100) / 100;
+          const value = d.value || Math.round((itemsTotal(qty) + shipping().cost) * 100) / 100;
           store.set("s4s_pending", JSON.stringify({ value, qty, size }), sessionStorage);
           track("InitiateCheckout", { value, currency: "GBP", content_ids: ["S4S-PF-HOODIE"], content_type: "product", num_items: qty });
           location.href = d.url; return;

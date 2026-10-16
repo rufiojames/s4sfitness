@@ -6,6 +6,8 @@
 //   STRIPE_SECRET_KEY = sk_live_...   (or sk_test_... while testing)
 
 const PRODUCT_NAME = "S4S Perform-Fit Full Zip Hoodie";
+// Multi-buy: every pair of hoodies is £60 (£30 each). An odd one is full price.
+const PAIR_PENCE = 6000;
 
 // ---- Delivery zones (all amounts in pence) -------------------------------
 // Based on Royal Mail Tracked for a packed hoodie under 500g.
@@ -13,7 +15,7 @@ const PRODUCT_NAME = "S4S Perform-Fit Full Zip Hoodie";
 // maxQty keeps international parcels under Royal Mail's 2kg small-parcel limit.
 const ZONES = {
   uk: {
-    label: "UK tracked delivery", first: 599, extra: 0, freeOver: 6500, // 2+ hoodies (£69.98) ship free
+    label: "UK tracked delivery", first: 0, extra: 0, freeOver: null, // free UK delivery on every order (from 16 Oct 2026)
     days: [1, 3], maxQty: 20, countries: ["GB"]
   },
   europe: {
@@ -73,12 +75,14 @@ export default async (req) => {
     ? `You can order up to ${zone.maxQty} at once. For more, use our team orders form.`
     : `International orders are limited to ${zone.maxQty} hoodies. For more, email us or use our team orders form.` });
 
-  const subtotal = stock.price_pence * qty;
+  const pairs = Math.floor(qty / 2), single = qty % 2;
+  const subtotal = pairs * PAIR_PENCE + single * stock.price_pence;
 
-  const free = zone.freeOver !== null && subtotal > zone.freeOver;
+  const shipCost = zone.first + zone.extra * (qty - 1);
+  const free = shipCost === 0 || (zone.freeOver !== null && subtotal > zone.freeOver);
   const shipping = {
     name: free ? "Free " + zone.label : zone.label,
-    amount: free ? 0 : zone.first + zone.extra * (qty - 1),
+    amount: free ? 0 : shipCost,
     min: zone.days[0], max: zone.days[1], countries: zone.countries
   };
 
@@ -86,13 +90,19 @@ export default async (req) => {
   p.append("mode", "payment");
   p.append("success_url", `${site}/order-confirmed.html?session_id={CHECKOUT_SESSION_ID}`);
   p.append("cancel_url", `${site}/perform-fit-hoodie.html`);
-  p.append("line_items[0][quantity]", String(qty));
-  p.append("line_items[0][price_data][currency]", "gbp");
-  p.append("line_items[0][price_data][unit_amount]", String(stock.price_pence));
-  p.append("line_items[0][price_data][product_data][name]", `${PRODUCT_NAME} – Size ${size}`);
-  p.append("line_items[0][price_data][product_data][description]", "Grey marl / charcoal / sky blue");
-  p.append("line_items[0][price_data][product_data][images][0]", `${site}/img/graffiti-hands-on-hips-sm.jpg`);
-  p.append("line_items[0][price_data][product_data][metadata][size]", size);
+  const lines = [];
+  if (pairs) lines.push({ qty: pairs * 2, unit: PAIR_PENCE / 2, note: "2 for £60" });
+  if (single) lines.push({ qty: 1, unit: stock.price_pence, note: "" });
+  lines.forEach((l, i) => {
+    const k = `line_items[${i}]`;
+    p.append(`${k}[quantity]`, String(l.qty));
+    p.append(`${k}[price_data][currency]`, "gbp");
+    p.append(`${k}[price_data][unit_amount]`, String(l.unit));
+    p.append(`${k}[price_data][product_data][name]`, `${PRODUCT_NAME} – Size ${size}` + (l.note ? ` (${l.note})` : ""));
+    p.append(`${k}[price_data][product_data][description]`, "Grey marl / charcoal / sky blue");
+    p.append(`${k}[price_data][product_data][images][0]`, `${site}/img/graffiti-hands-on-hips-sm.jpg`);
+    p.append(`${k}[price_data][product_data][metadata][size]`, size);
+  });
   shipping.countries.forEach((c, i) => p.append(`shipping_address_collection[allowed_countries][${i}]`, c));
   p.append("shipping_options[0][shipping_rate_data][type]", "fixed_amount");
   p.append("shipping_options[0][shipping_rate_data][display_name]", shipping.name);
@@ -132,7 +142,7 @@ export default async (req) => {
     const detail = key.startsWith("sk_test_") ? ` [Stripe test mode: ${err.message || "HTTP " + res.status}]` : "";
     return json(502, { error: "Checkout couldn't start. Please try again, or email us." + detail });
   }
-  return json(200, { url: data.url });
+  return json(200, { url: data.url, value: (subtotal + shipping.amount) / 100 });
 };
 
 export const config = { path: "/api/checkout" };

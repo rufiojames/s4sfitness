@@ -76,7 +76,7 @@ def head(title, desc, path, og_img="img/og.jpg", extra=""):
 def header(path):
     links = "".join(
         f'<a href="{h}"{" aria-current=" + chr(34) + "page" + chr(34) if h == path else ""}>{t}</a>' for h, t in NAV)
-    return f"""<div class="announce">The final run · Once a size is gone, it's gone · UK delivery £5.99, free when you buy 2</div>
+    return f"""<div class="announce">Free UK delivery · 2 for £60 · The final run: once a size is gone, it's gone</div>
 <header class="site-header">
   <div class="wrap">
     <a class="brand" href="./" aria-label="S4S Fitness home"><img src="img/logo.png" alt="S4S Fitness" width="800" height="396"></a>
@@ -215,7 +215,7 @@ home = f"""
     <p class="lede">The hoodie you can actually train in. Bespoke designed in the UK: tapered, full-zip, zipped pockets, made to move. This is the final run, and we won't be making it again.</p>
     <div class="btns"><a class="btn btn-primary" href="perform-fit-hoodie.html">Shop the hoodie</a><a class="btn btn-ghost" href="lookbook.html">See the lookbook</a></div>
     <div class="hero-stats">
-      <div><b>£34.99</b><span>Final run</span></div>
+      <div><b>2 for £60</b><span>Free UK delivery</span></div>
       <div><b>S–XXL</b><span>Unisex sizing</span></div>
       <div><b>24 hrs</b><span>Dispatch</span></div>
     </div>
@@ -235,7 +235,7 @@ home = f"""
   <div>
     <p class="eyebrow">The signature piece</p>
     <h2>Perform-Fit <span class="blue">Full Zip</span> Hoodie</h2>
-    <div class="price"><strong>£34.99</strong><em>FINAL RUN</em></div>
+    <div class="price"><strong>£34.99</strong><em>FINAL RUN</em><span class="deal">2 for £60</span></div>
     <ul class="ticks">
       <li>Tapered, close cut that shows the work without restricting movement</li>
       <li>Grey marl body with a contrast charcoal hood and sky-blue lining</li>
@@ -323,7 +323,7 @@ pdp = f"""
     <div class="buybox" id="buybox">
       <p class="eyebrow">S4S Fitness · Training hoodie</p>
       <h1>Perform-Fit <span class="blue">Full Zip</span> Hoodie</h1>
-      <div class="price"><strong>£34.99</strong><em>FINAL RUN</em></div>
+      <div class="price"><strong>£34.99</strong><em>FINAL RUN</em><span class="deal">2 for £60</span></div>
       <p class="lede">The hoodie you can actually train in. Bespoke designed in the UK, cut close in our exclusive fabric blend, and free to move through every lift, sprint and rally.</p>
       <p class="made-for"><b>Made for</b> gym warm-ups · padel · runs · everyday</p>
       <p class="final-note"><b>Final run.</b> This is the last batch of the original Perform-Fit. We won't be remaking it, so when a size sells out, it's gone.</p>
@@ -340,7 +340,7 @@ pdp = f"""
         <button type="button" id="region-europe" data-region="europe" aria-pressed="false">Europe</button>
         <button type="button" id="region-world" data-region="world" aria-pressed="false">Rest of world</button>
       </div>
-      <p class="ship-note" id="ship-note">UK tracked delivery £5.99 (free when you buy 2)</p>
+      <p class="ship-note" id="ship-note">Free UK tracked delivery</p>
 
       <div class="buy-row">
         <div class="qty" aria-label="Quantity">
@@ -354,7 +354,7 @@ pdp = f"""
 
       <div class="assure">
         <div><span><b>Dispatched in 24 hrs</b><br>Tracked UK delivery</span></div>
-        <div><span><b>Free UK delivery</b><br>When you buy 2 or more</span></div>
+        <div><span><b>2 for £60</b><br>Free UK delivery</span></div>
         <div><span><b>30-day returns</b><br>Unworn, tags on</span></div>
         <div><span><b>Secure checkout</b><br>Card, Apple Pay, Google Pay</span></div>
       </div>
@@ -375,7 +375,7 @@ pdp = f"""
           <p>Between sizes? Size up for a relaxed fit, or take your usual size for the full aesthetic cut. See the <a href="#size-guide">size guide</a>.</p>
         </div></details>
         <details><summary>Delivery &amp; returns</summary><div class="acc-body">
-          <p>Tracked UK delivery is £5.99 (1–3 days) and free when you buy 2 or more (orders over £65). Tracked delivery to Europe is £14.99, and to the rest of the world £25.99, plus a little for each extra hoodie. Orders are dispatched within 24 hours.</p>
+          <p>Tracked UK delivery (1–3 days) is free on every order. Tracked delivery to Europe is £14.99, and to the rest of the world £25.99, plus a little for each extra hoodie. Orders are dispatched within 24 hours.</p>
           <p>Returns are accepted within 30 days for unworn items with tags. <a href="delivery-returns.html">Full delivery and returns details</a>.</p>
         </div></details>
         <details><summary>Buying for a team?</summary><div class="acc-body">
@@ -645,8 +645,7 @@ delivery = f"""
     <div class="tablewrap" style="margin-bottom:1.6em"><table class="plain-table">
       <thead><tr><th>Service</th><th>Order</th><th>Cost</th></tr></thead>
       <tbody>
-        <tr><td>UK tracked (1–3 days)</td><td>Up to £65 (1 hoodie)</td><td>£5.99</td></tr>
-        <tr><td>UK tracked (1–3 days)</td><td>Over £65 (2 or more)</td><td>Free</td></tr>
+        <tr><td>UK tracked (1–3 days)</td><td>Any order</td><td>Free</td></tr>
         <tr><td>Europe tracked (3–7 days)</td><td>1 hoodie</td><td>£14.99</td></tr>
         <tr><td>Europe tracked (3–7 days)</td><td>Each extra hoodie</td><td>+£2.00</td></tr>
         <tr><td>Rest of world tracked (5–10 days)</td><td>1 hoodie</td><td>£25.99</td></tr>
