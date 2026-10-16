@@ -203,8 +203,8 @@ def community(heading='Worn by <span class="blue">you</span>', stems=("missswong
 """
 
 SIZES = [("S", "48"), ("M", "51"), ("L", "54"), ("XL", "57"), ("XXL", "60")]
-# James's fit guide (body chest, inches), 16 Oct 2026
-FITS = {"S": "33–36\"", "M": "36–39\"", "L": "39–41\"", "XL": "41–43\"", "XXL": "43–46\""}
+# Fits body chest (inches): hoodie chest = 2 x flat width; stretch fit, roughly +/-1". Agreed 16 Oct 2026
+FITS = {"S": "37–39\"", "M": "39–41\"", "L": "41–43\"", "XL": "43–45\"", "XXL": "45–47\""}
 
 # ======================================================================
 # HOME
@@ -401,8 +401,8 @@ pdp = f"""
   <div>
     <p class="eyebrow">Size guide</p>
     <h2>Find your <span class="blue">size</span></h2>
-    <p class="lede" style="margin-top:16px">Measure around your chest at the fullest part and find your size in the <b>Fits chest</b> column. Between sizes, or prefer a looser fit? Go for the bigger one.</p>
-    <p class="small" style="margin-top:16px">The Perform-Fit is a close, stretch fit. The hoodie width is measured laid flat, armpit to armpit. Our model is 5'10" and wears a medium. All sizes are unisex. Tap a row to select that size.</p>
+    <p class="lede" style="margin-top:16px">Measure around your chest at the fullest part and find your size in the <b>Fits chest</b> column. It's a stretch fit designed to sit close. Between sizes, or prefer a looser fit? Go for the bigger one.</p>
+    <p class="small" style="margin-top:16px">The hoodie width is measured laid flat, armpit to armpit. Our model is 5'10" and wears a medium. All sizes are unisex. Tap a row to select that size.</p>
   </div>
   <div class="tablewrap">
     <table class="size-table">
