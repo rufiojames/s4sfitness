@@ -203,6 +203,8 @@ def community(heading='Worn by <span class="blue">you</span>', stems=("missswong
 """
 
 SIZES = [("S", "48"), ("M", "51"), ("L", "54"), ("XL", "57"), ("XXL", "60")]
+# James's fit guide (body chest, inches), 16 Oct 2026
+FITS = {"S": "33–36\"", "M": "36–39\"", "L": "39–41\"", "XL": "41–43\"", "XXL": "43–46\""}
 
 # ======================================================================
 # HOME
@@ -299,7 +301,7 @@ thumbs = "".join(
     f'<button type="button" data-full="img/{s}.jpg" data-alt="{PHOTOS[s]}" aria-label="Show photo {k+1}"{" aria-current=" + chr(34) + "true" + chr(34) if k == 0 else ""}><img src="img/{s}-sm.jpg" alt="" loading="lazy"></button>'
     for k, s in enumerate(gallery_order))
 size_btns = "".join(f'<button type="button" id="size-{s}" data-size="{s}" aria-pressed="false">{s}</button>' for s, _ in SIZES)
-size_rows = "".join(f'<tr data-size="{s}"><td>{s}</td><td>{c}</td></tr>' for s, c in SIZES)
+size_rows = "".join(f'<tr data-size="{s}"><td>{s}</td><td>{FITS[s]}</td><td>{c} cm</td></tr>' for s, c in SIZES)
 product_ld = {"@context": "https://schema.org", "@type": "Product", "name": "S4S Fitness Perform-Fit Full Zip Training Hoodie",
   "brand": {"@type": "Brand", "name": "S4S Fitness"}, "image": [f"{SITE}/img/{s}.jpg" for s in gallery_order[:3]],
   "description": "Aesthetically fitted, designed to perform. Full zip training hoodie in our exclusive fabric blend.",
@@ -399,12 +401,12 @@ pdp = f"""
   <div>
     <p class="eyebrow">Size guide</p>
     <h2>Find your <span class="blue">size</span></h2>
-    <p class="lede" style="margin-top:16px">Measure across the chest of a hoodie that fits you well and compare it with the chart. Tap a row to select that size.</p>
-    <p class="small" style="margin-top:16px">All sizes are unisex.</p>
+    <p class="lede" style="margin-top:16px">Measure around your chest at the fullest part and find your size in the <b>Fits chest</b> column. Between sizes, or prefer a looser fit? Go for the bigger one.</p>
+    <p class="small" style="margin-top:16px">The Perform-Fit is a close, stretch fit. The hoodie width is measured laid flat, armpit to armpit. Our model is 5'10" and wears a medium. All sizes are unisex. Tap a row to select that size.</p>
   </div>
   <div class="tablewrap">
     <table class="size-table">
-      <thead><tr><th scope="col">Size</th><th scope="col">Chest</th></tr></thead>
+      <thead><tr><th scope="col">Size</th><th scope="col">Fits chest</th><th scope="col">Hoodie width, armpit to armpit</th></tr></thead>
       <tbody>{size_rows}</tbody>
     </table>
   </div>
